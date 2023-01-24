@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient2"
+    tools:context=".LoginActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:padding="15dp"
+        android:background="@drawable/block"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/registerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/register_title"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="14pt"
+            android:shadowColor="@color/neon_blue"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="5"
+            android:fontFamily="sans-serif-thin"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/nameField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_name_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/registerTitle"
+            android:textColorHint="@color/navy_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <EditText
+            android:id="@+id/surnameField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_surname_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/nameField"
+            android:textColorHint="@color/navy_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+
+        <TextView
+            android:id="@+id/dateTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
+            android:shadowColor="@color/neon_blue"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="5"
+            android:text="@string/register_date_title"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="11pt"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/surnameField" />
+        <EditText
+            android:id="@+id/dateField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_date_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dateTitle"
+            android:textColorHint="@color/neon_blue"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <EditText
+            android:id="@+id/emailField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_email_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dateField"
+            android:textColorHint="@color/green_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+
+        <EditText
+            android:id="@+id/countryField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_country_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/emailField"
+            android:textColorHint="@color/neon_blue"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <EditText
+            android:id="@+id/cityField"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_city_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/countryField"
+            android:textColorHint="@color/neon_blue"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+
+        <EditText
+            android:id="@+id/password1Field"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_password_hint1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cityField"
+            android:textColorHint="@color/orange_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <EditText
+            android:id="@+id/password2Field"
+            android:textColor="@color/neon_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/register_password_hint2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/password1Field"
+            android:textColorHint="@color/orange_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <com.sanojpunchihewa.glowbutton.GlowButton
+            android:id="@+id/support_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@drawable/blue_button"
+            android:padding="20dp"
+            android:text="@string/register_button"
+            android:textColor="@color/black"
+            android:textFontWeight="200"
+            android:textSize="15dp"
+            android:onClick="register"
+            app:buttonColor="@color/neon_blue"
+            app:glowColor="@color/neon_blue"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/password2Field"
+            tools:ignore="OnClick" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

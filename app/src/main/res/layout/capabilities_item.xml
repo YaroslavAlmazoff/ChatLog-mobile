@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<LinearLayout
+    android:id="@+id/capability"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="7dp"
+    android:orientation="horizontal"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <ImageView
+        android:id="@+id/capabilityImage"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        app:srcCompat="@drawable/games" />
+
+    <TextView
+        android:id="@+id/capabilityName"
+        android:layout_width="wrap_content"
+        android:layout_height="49dp"
+        android:layout_marginLeft="10dp"
+        android:layout_weight="1"
+        android:text="@string/capability1"
+        android:textColor="@color/violet_neon"
+        android:shadowColor="@color/neon_blue"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="30"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textSize="26dp" />
+</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">ChatLog</string>
+    <string name="app_name_uppercase">CHATLOG</string>
+    <string name="register">Зарегистрироваться</string>
+    <string name="login">Войти</string>
+
+    <string name="capability1">Игры</string>
+    <string name="capability2">Новости для геймеров</string>
+    <string name="capability3">Удобный мессенджер</string>
+    <string name="capability4">Облачное хранилище</string>
+    <string name="capability5">Реклама игр</string>
+    <string name="app_description">Chatlog - это уютная и безопасная социальная сеть для геймеров. Здесь можно вести свой блог, создать свой канал, заводить друзей, переписываться, обмениваться файлами, в удобной форме создавать и выкладывать объявления о продаже игровых аккаунтов и тп.</string>
+    <string name="help">Возникла ошибка?</string>
+    <string name="support_title">Напишите сообщение об ошибке</string>
+    <string name="support_hint">Ваше сообщение</string>
+    <string name="support_button">Отправить</string>
+    <string name="login_title">Вход</string>
+    <string name="register_title">Регистрация</string>
+    <string name="login_button">Войти</string>
+    <string name="register_button">Зарегистрироваться</string>
+    <string name="login_email_hint">Введите свой email</string>
+    <string name="register_email_hint">Введите email</string>
+    <string name="login_password_hint">Введите пароль</string>
+    <string name="register_name_hint">Введите имя</string>
+    <string name="register_surname_hint">Введите фамилию</string>
+    <string name="register_date_title">Введите дату рождения</string>
+    <string name="register_date_hint">Например: 01.01.2001 (необязательно)</string>
+    <string name="register_password_hint1">Придумайте пароль</string>
+    <string name="register_password_hint2">Повторите пароль</string>
+    <string name="register_country_hint">Ваша страна (необязательно)</string>
+    <string name="register_city_hint">Ваш город (необязательно)</string>
+
+    <string name="register_password_small_error">Пароль должен содержать не менее 8 символов</string>
+    <string name="register_passwords_not_match_error">Пароли должны совпадать</string>
+    <string name="register_email_error">Не правильно введен email</string>
+    <string name="register_date_error">Не правильно введена дата рождения</string>
+    <string name="register_password_error">Введите пароль</string>
+    <string name="register_name_error">Введите имя или псевдоним</string>
+
+    <string name="login_error">Введены некорректные данные</string>
+    <string name="login_email_error">Введен некорректный email</string>
+    <string name="login_password_error">Пароль не должен быть пустым</string>
+
+</resources>

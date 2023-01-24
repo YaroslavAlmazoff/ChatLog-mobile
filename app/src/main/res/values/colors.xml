@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="neon_blue">#40A4FF</color>
+    <color name="gradient_start_color">#003742</color>
+    <color name="gradient_end_color">#0f0f28</color>
+    <color name="transparent_dark">#4D000000</color>
+    <color name="transparent_dark_ultra">#80000000</color>
+    <color name="transparent">#80000000</color>
+    <color name="light_neon_blue">#007DEF</color>
+
+    <color name="violet_neon">#9A38D6</color>
+    <color name="navy_neon">#4D4DFF</color>
+    <color name="pink_neon">#B71DDE</color>
+    <color name="green_neon">#86ED26</color>
+    <color name="orange_neon">#FF760D</color>
+
+    <color name="g_dark">#0F0F28</color>
+    <color name="g_green">#003700</color>
+    <color name="g_dark_grey">#1F2B38</color>
+    <color name="g_dark_navy">#1B286A</color>
+    <color name="g_dark_brown">#271317</color>
+    <color name="g_dark_gray">#262626</color>
+    <color name="g_dark_violet">#260021</color>
+    <color name="g_dark_blue">#0C013B</color>
+    <color name="g_brown">#382C29</color>
+</resources>

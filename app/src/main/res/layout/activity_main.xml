@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient"
+    app:layoutDescription="@xml/activity_main_scene"
+    tools:context=".MainActivity">
+
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:letterSpacing="0.5"
+            android:text="@string/app_name_uppercase"
+            android:textColor="@color/white"
+            android:textFontWeight="100"
+            android:textSize="30dp"
+            android:shadowColor="@color/neon_blue"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="10"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/appName">
+
+            <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/blue_button"
+                android:padding="20dp"
+                android:text="@string/login"
+                android:onClick="runLoginActivity"
+                android:textColor="@color/gradient_start_color"
+                android:textFontWeight="200"
+                android:textSize="15dp"
+                app:buttonColor="@color/neon_blue"
+                app:glowColor="@color/neon_blue" />
+
+            <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/register"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/blue_button"
+                android:padding="20dp"
+                android:text="@string/register"
+                android:onClick="runRegisterActivity"
+                android:textColor="@color/gradient_start_color"
+                android:textFontWeight="200"
+                android:textSize="14dp"
+                app:buttonColor="@color/neon_blue"
+                app:glowColor="@color/neon_blue" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/capabilitiesList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:footerDividersEnabled="false"
+            android:divider="@color/transparent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/linearLayout"></ListView>
+
+        <TextView
+            android:id="@+id/app_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:shadowColor="@color/white"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="30"
+            android:text="@string/app_description"
+            android:textAlignment="center"
+            android:textColor="@color/neon_blue"
+            android:textSize="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/capabilitiesList" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/app_description">
+
+            <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/help"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                android:background="@drawable/blue_button"
+                android:padding="20dp"
+                android:text="@string/help"
+                android:textColor="@color/gradient_start_color"
+                android:textFontWeight="200"
+                android:textSize="14dp"
+                app:buttonColor="@color/neon_blue"
+                app:glowColor="@color/neon_blue"
+                android:onClick="runSupportActivity"
+                app:layout_constraintTop_toBottomOf="@+id/app_description" />
+        </LinearLayout>
+
+
+
+</androidx.constraintlayout.motion.widget.MotionLayout>
