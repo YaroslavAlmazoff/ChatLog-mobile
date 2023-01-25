@@ -80,7 +80,7 @@ class LoginActivity : AppCompatActivity() {
         runHomeActivity()
     }
     private fun runHomeActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
     }
 }

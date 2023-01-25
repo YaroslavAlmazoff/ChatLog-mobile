@@ -21,6 +21,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val util = Utils()
+        if(util.readUserFile(File(filesDir, util.userFileName)).isNotEmpty()) {
+            runHomeActivity()
+        }
+
         var listView = findViewById<ListView>(R.id.capabilitiesList)
         var capabilitiesArr: ArrayList<Capability> = ArrayList()
         listView.adapter = CapabilitiesAdapter(applicationContext, capabilitiesArr)
@@ -54,6 +59,10 @@ class MainActivity : AppCompatActivity() {
     }
     fun runSupportActivity(view: View) {
         val intent = Intent(this, SupportActivity::class.java)
+        startActivity(intent)
+    }
+    fun runHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
     }
 }
