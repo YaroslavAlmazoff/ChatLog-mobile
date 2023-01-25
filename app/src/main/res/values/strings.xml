@@ -46,4 +46,10 @@
     <string name="home_default_city">Ваш город</string>
     <string name="home_default_text">0, Хорошая погода</string>
     <string name="loading">Loading...</string>
+
+    <string name="nav_home">Главная</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="nav_people">Люди</string>
+    <string name="nav_messenger">Сообщения</string>
+    <string name="nav_other">...</string>
 </resources>
