@@ -21,6 +21,9 @@ class HomeActivity : AppCompatActivity() {
     var weatherText: TextView? = null
     var weatherImage: ImageView? = null
 
+    var newsList: RecyclerView? = null
+    var publicNewsList: RecyclerView? = null
+
     var user: JSONObject? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,32 +61,74 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         timer.start()
-        var newsList = findViewById<RecyclerView>(R.id.home_news)
-        newsList.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL))
-
+        newsList = findViewById(R.id.home_news)
         var newsArr: ArrayList<NewsItem> = ArrayList()
-        getNewsInBackground(newsArr)
-        newsList.adapter = HomeNewsAdapter(newsArr)
-        newsList.layoutManager = LinearLayoutManager(this)
+
+        publicNewsList = findViewById(R.id.home_news_p)
+        var publicNewsArr: ArrayList<NewsItem> = ArrayList()
+
+        val friendsNewsSwitch = findViewById<TextView>(R.id.home_friends_news)
+        val publicsNewsSwitch = findViewById<TextView>(R.id.home_publics_news)
+
+        friendsNewsSwitch.setOnClickListener {
+            getNewsInBackground(newsArr, true)
+        }
+        publicsNewsSwitch.setOnClickListener {
+            getNewsInBackground(publicNewsArr, false)
+        }
+
+        getNewsInBackground(newsArr, true)
+        getNewsInBackground(publicNewsArr, false)
+
+        newsList?.adapter = HomeNewsAdapter(newsArr)
+        newsList?.layoutManager = LinearLayoutManager(this)
+        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr)
+        publicNewsList?.layoutManager = LinearLayoutManager(this)
     }
-    private fun getNewsInBackground(news: ArrayList<NewsItem>) {
+    private fun getNewsInBackground(news: ArrayList<NewsItem>, isFriends: Boolean) {
         Thread {
             try {
-                getNews(news)
+                if(isFriends) {
+                    getFriendsNews(news)
+                } else {
+                    getPublicNews(news)
+                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
             }
         }.start()
     }
-    private fun getNews(news: ArrayList<NewsItem>) {
+    private fun getFriendsNews(news: ArrayList<NewsItem>) {
         Log.e("TAG", "bones")
         Log.e("TAG", user?.getString("_id").toString())
+        runOnUiThread {
+            publicNewsList?.visibility = View.GONE
+            newsList?.visibility = View.VISIBLE
+        }
         val newsData = URL(Constants().SITE_NAME + "ffn/${user?.getString("_id")}").readText(Charsets.UTF_8)
         val newsArray = JSONObject(newsData).getJSONArray("news")
         for(i in 0 until newsArray.length()) {
             news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
                 newsArray.getJSONObject(i).getString("date"),
                 newsArray.getJSONObject(i).getString("userName"),
+                newsArray.getJSONObject(i).getString("avatar"),
+                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else ""))
+        }
+    }
+    private fun getPublicNews(news: ArrayList<NewsItem>) {
+        Log.e("TAG", "sesh")
+        Log.e("TAG", user?.getString("_id").toString())
+        runOnUiThread {
+            newsList?.visibility = View.GONE
+            publicNewsList?.visibility = View.VISIBLE
+        }
+        val newsData = URL(Constants().SITE_NAME + "fpn/${user?.getString("_id")}").readText(Charsets.UTF_8)
+        Log.e("TAG", newsData)
+        val newsArray = JSONObject(newsData).getJSONArray("news")
+        for(i in 0 until newsArray.length()) {
+            news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
+                newsArray.getJSONObject(i).getString("date"),
+                newsArray.getJSONObject(i).getString("publicName"),
                 newsArray.getJSONObject(i).getString("avatar"),
                 if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else ""))
         }
@@ -102,7 +147,6 @@ class HomeActivity : AppCompatActivity() {
         val city = URL(Constants().SITE_NAME + "mobile/translit/${user?.getString("city")}").readText(Charsets.UTF_8)
         val weatherData = URL(url + "?q=${JSONObject(city).getString("message")}&units=metric&APPID=${Constants().WEATHER_API_KEY}").readText(Charsets.UTF_8)
         Log.e("TAG", weatherData)
-        //weatherText?.text = "${JSONObject(weatherData).getJSONObject("main").getString("temp").toFloat().toInt()} ${JSONObject(weatherData).getJSONArray("weather").getString(0)}"
         val resultWeather = "${JSONObject(weatherData).getJSONObject("main").getString("temp").toFloat().toInt()}, " +
                 "${JSONObject(weatherData).getJSONArray("weather").getJSONObject(0).getString("main")}"
         runOnUiThread {
