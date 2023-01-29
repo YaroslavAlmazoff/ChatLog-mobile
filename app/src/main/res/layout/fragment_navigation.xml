@@ -12,7 +12,7 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingTop="10dp"
-        android:background="@color/transparent_dark_ultra"
+        android:background="@color/g_dark"
         app:layout_constraintBottom_toBottomOf="parent">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/nav_home_view"

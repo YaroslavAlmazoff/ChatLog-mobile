@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1245" />
+        <entry key="app/src/main/res/drawable/avatar.xml" value="0.315" />
         <entry key="app/src/main/res/drawable/block.xml" value="0.316" />
         <entry key="app/src/main/res/drawable/blue_button.xml" value="0.2695" />
         <entry key="app/src/main/res/drawable/blue_empty_button.xml" value="0.333" />
@@ -13,15 +14,21 @@
         <entry key="app/src/main/res/drawable/gradient1.xml" value="0.2135" />
         <entry key="app/src/main/res/drawable/gradient2.xml" value="0.2135" />
         <entry key="app/src/main/res/drawable/gradient3.xml" value="0.2135" />
+        <entry key="app/src/main/res/drawable/gradient4.xml" value="0.203" />
+        <entry key="app/src/main/res/drawable/gradient5.xml" value="0.203" />
+        <entry key="app/src/main/res/drawable/gradient6.xml" value="0.203" />
         <entry key="app/src/main/res/drawable/rounded.xml" value="0.333" />
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.2578024796921761" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_messenger.xml" value="0.24882428388200087" />
+        <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.2578024796921761" />
         <entry key="app/src/main/res/layout/activity_support.xml" value="0.25" />
         <entry key="app/src/main/res/layout/capabilities_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_navigation.xml" value="0.24882428388200087" />
+        <entry key="app/src/main/res/layout/home_news_item.xml" value="0.271483539974348" />
+        <entry key="app/src/main/res/layout/news_item.xml" value="0.19623770842240273" />
       </map>
     </option>
   </component>

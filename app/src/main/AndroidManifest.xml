@@ -16,6 +16,24 @@
         android:theme="@style/Theme.ChatLog"
         tools:targetApi="31">
         <activity
+            android:name=".VideohostActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CloudActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdvertsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Videohost"
+            android:exported="false" />
+        <activity
+            android:name=".GamesActivity"
+            android:exported="false" />
+        <activity
             android:name=".NavigationActivity"
             android:exported="false" />
         <activity

@@ -8,6 +8,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
 import java.io.File
@@ -34,6 +37,7 @@ class HomeActivity : AppCompatActivity() {
         weatherImage = findViewById(R.id.weather_image)
         user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
 
+
         val unicode = 0x1F3E0
         weatherCity?.text = util.getEmojiByUnicode(unicode) + user?.getString("city").toString()
 
@@ -54,6 +58,35 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         timer.start()
+        var newsList = findViewById<RecyclerView>(R.id.home_news)
+        newsList.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL))
+
+        var newsArr: ArrayList<NewsItem> = ArrayList()
+        getNewsInBackground(newsArr)
+        newsList.adapter = HomeNewsAdapter(newsArr)
+        newsList.layoutManager = LinearLayoutManager(this)
+    }
+    private fun getNewsInBackground(news: ArrayList<NewsItem>) {
+        Thread {
+            try {
+                getNews(news)
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "все плохо")
+            }
+        }.start()
+    }
+    private fun getNews(news: ArrayList<NewsItem>) {
+        Log.e("TAG", "bones")
+        Log.e("TAG", user?.getString("_id").toString())
+        val newsData = URL(Constants().SITE_NAME + "ffn/${user?.getString("_id")}").readText(Charsets.UTF_8)
+        val newsArray = JSONObject(newsData).getJSONArray("news")
+        for(i in 0 until newsArray.length()) {
+            news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
+                newsArray.getJSONObject(i).getString("date"),
+                newsArray.getJSONObject(i).getString("userName"),
+                newsArray.getJSONObject(i).getString("avatar"),
+                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else ""))
+        }
     }
     private fun getInBackground() {
         Thread {

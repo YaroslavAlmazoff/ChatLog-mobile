@@ -45,6 +45,10 @@
     <string name="home_default_time">00:00:00</string>
     <string name="home_default_city">Ваш город</string>
     <string name="home_default_text">0, Хорошая погода</string>
+    <string name="home_default_news">У Вас пока нет новостей</string>
+    <string name="home_friends_news">Новости друзей</string>
+    <string name="home_publics_news">Новости групп</string>
+
     <string name="loading">Loading...</string>
 
     <string name="nav_home">Главная</string>
@@ -52,4 +56,11 @@
     <string name="nav_people">Люди</string>
     <string name="nav_messenger">Сообщения</string>
     <string name="nav_other">...</string>
+
+    <string name="link_cloud">Хранилище</string>
+    <string name="link_games">Игры</string>
+    <string name="link_videos">Видеоблогер</string>
+    <string name="link_ads">Объявления</string>
+    <string name="link_adverts">Реклама</string>
+    <string name="link_shop">Магазин</string>
 </resources>
