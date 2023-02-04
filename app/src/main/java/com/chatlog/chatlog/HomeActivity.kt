@@ -1,20 +1,22 @@
 package com.chatlog.chatlog
 
+import android.R.attr.data
+import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
+
 
 class HomeActivity : AppCompatActivity() {
     var weatherCity: TextView? = null
@@ -25,6 +27,7 @@ class HomeActivity : AppCompatActivity() {
     var publicNewsList: RecyclerView? = null
 
     var user: JSONObject? = null
+    var userData: JSONObject? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -39,7 +42,9 @@ class HomeActivity : AppCompatActivity() {
         weatherText = findViewById(R.id.weather_text)
         weatherImage = findViewById(R.id.weather_image)
         user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
+        userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
+        checkToken()
 
         val unicode = 0x1F3E0
         weatherCity?.text = util.getEmojiByUnicode(unicode) + user?.getString("city").toString()
@@ -70,19 +75,22 @@ class HomeActivity : AppCompatActivity() {
         val friendsNewsSwitch = findViewById<TextView>(R.id.home_friends_news)
         val publicsNewsSwitch = findViewById<TextView>(R.id.home_publics_news)
 
+
         friendsNewsSwitch.setOnClickListener {
-            getNewsInBackground(newsArr, true)
+            publicNewsList?.visibility = View.GONE
+            newsList?.visibility = View.VISIBLE
         }
         publicsNewsSwitch.setOnClickListener {
-            getNewsInBackground(publicNewsArr, false)
+            newsList?.visibility = View.GONE
+            publicNewsList?.visibility = View.VISIBLE
         }
 
         getNewsInBackground(newsArr, true)
         getNewsInBackground(publicNewsArr, false)
 
-        newsList?.adapter = HomeNewsAdapter(newsArr)
+        newsList?.adapter = HomeNewsAdapter(newsArr, userData!!)
         newsList?.layoutManager = LinearLayoutManager(this)
-        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr)
+        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr, userData!!)
         publicNewsList?.layoutManager = LinearLayoutManager(this)
     }
     private fun getNewsInBackground(news: ArrayList<NewsItem>, isFriends: Boolean) {
@@ -99,6 +107,7 @@ class HomeActivity : AppCompatActivity() {
         }.start()
     }
     private fun getFriendsNews(news: ArrayList<NewsItem>) {
+
         Log.e("TAG", "bones")
         Log.e("TAG", user?.getString("_id").toString())
         runOnUiThread {
@@ -112,7 +121,11 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getString("date"),
                 newsArray.getJSONObject(i).getString("userName"),
                 newsArray.getJSONObject(i).getString("avatar"),
-                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else ""))
+                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else "",
+                newsArray.getJSONObject(i).getInt("likes"),
+                newsArray.getJSONObject(i).getBoolean("liked"),
+                newsArray.getJSONObject(i).getString("_id")
+            ))
         }
     }
     private fun getPublicNews(news: ArrayList<NewsItem>) {
@@ -130,7 +143,11 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getString("date"),
                 newsArray.getJSONObject(i).getString("publicName"),
                 newsArray.getJSONObject(i).getString("avatar"),
-                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else ""))
+                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else "",
+                newsArray.getJSONObject(i).getInt("likes"),
+                newsArray.getJSONObject(i).getBoolean("liked"),
+                newsArray.getJSONObject(i).getString("_id")
+                ))
         }
     }
     private fun getInBackground() {
@@ -154,5 +171,34 @@ class HomeActivity : AppCompatActivity() {
             Picasso.get().load("https://openweathermap.org/img/wn/${JSONObject(weatherData).getJSONArray("weather").getJSONObject(0).getString("icon")}@2x.png").into(weatherImage)
         }
     }
-
+    private fun checkToken() {
+        Thread {
+            try {
+                Log.e("TAG", userData.toString())
+                val token = userData?.getString("token")
+                val url = URL(Constants().SITE_NAME + "verify")
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                var data: Int = connection.inputStream.read()
+                var result = ""
+                var byteArr = byteArrayOf()
+                while(data != -1) {
+                    result += data.toChar().toString()
+                    byteArr.plus(data.toByte())
+                    data = connection.inputStream.read()
+                }
+                Log.e("TAG", result)
+                if(!JSONObject(result).getBoolean("verified")) {
+                    Utils().clearUserData(filesDir)
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                }
+            } catch (e: InterruptedException) {
+                Log.e("TAG", "Не удалось выполнить проверку")
+            }
+        }.start()
+    }
 }

@@ -19,6 +19,7 @@ class NavigationActivity : AppCompatActivity() {
         val ads = findViewById<View>(R.id.link_ads)
         val adverts = findViewById<View>(R.id.link_adverts)
         val cloud = findViewById<View>(R.id.link_cloud)
+        val quit = findViewById<View>(R.id.link_quit)
 
         home.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java)
@@ -54,6 +55,11 @@ class NavigationActivity : AppCompatActivity() {
         }
         cloud.setOnClickListener {
             val intent = Intent(this, CloudActivity::class.java)
+            startActivity(intent)
+        }
+        quit.setOnClickListener {
+            Utils().clearUserData(filesDir)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
     }

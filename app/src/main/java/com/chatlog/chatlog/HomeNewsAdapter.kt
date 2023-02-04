@@ -1,7 +1,10 @@
 package com.chatlog.chatlog
 
+import android.app.Activity
+import android.content.Context
+import android.graphics.Color
+import android.provider.SyncStateContract.Helpers
 import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +12,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONObject
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
-class HomeNewsAdapter(private val items: ArrayList<NewsItem>) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
+
+class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.news_item, parent, false)
@@ -22,9 +29,22 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>) : RecyclerView.Ada
         holder.title?.text = item.title
         holder.date?.text = item.date
         holder.user?.text = item.user
+        holder.likes?.text = item.likes.toString()
         if(holder.image != null && item.image != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/articles/${item.image}").into(holder.image)
         }
+        holder.likeImage?.setImageResource(R.drawable.blue_like)
+        Log.e("TAG", item.liked.toString())
+        if(item.liked) {
+            holder.likes?.text = (item.likes - 1).toString()
+            holder.likeImage?.setImageResource(R.drawable.blue_like)
+            holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
+        } else {
+            holder.likes?.text = (item.likes + 1).toString()
+            holder.likeImage?.setImageResource(R.drawable.red_like)
+            holder.likes?.setTextColor(Color.parseColor("#FF073A"))
+        }
+
         if(item.image == "") {
             holder.image?.visibility = View.GONE
         }
@@ -32,6 +52,43 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>) : RecyclerView.Ada
             Log.e("TAG", item.userAvatar)
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.userAvatar}").into(holder.userAvatar)
             holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        holder.like?.setOnClickListener {
+            if(item.liked) {
+                holder.likes?.text = item.likes.toString()
+                holder.likeImage?.setImageResource(R.drawable.red_like)
+                holder.likes?.setTextColor(Color.parseColor("#FF073A"))
+            } else {
+                holder.likes?.text = item.likes.toString()
+                holder.likeImage?.setImageResource(R.drawable.blue_like)
+                holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
+            }
+            Thread {
+                try {
+                    Log.e("TAG", "капец")
+                    val token = userData.getString("token")
+                    val url = URL(Constants().SITE_NAME + "like")
+                    val connection = url.openConnection() as HttpsURLConnection
+                    connection.requestMethod = "POST"
+                    connection.doOutput = true
+                    connection.setRequestProperty("Content-Type", "application/json")
+                    connection.setRequestProperty("Accept-Charset", "utf-8")
+                    connection.setRequestProperty("Authorization", "Bearer $token")
+
+                    val json = if(item.liked) "{\"sub\": \"${item.liked}\", \"id\": \"${item.id}\"}"
+                    else "{\"id\": \"${item.id}\"}"
+
+                    connection.outputStream.write(json.toByteArray())
+                    var data: Int = connection.inputStream.read()
+                    var result = ""
+                    while(data != -1) {
+                        result += data.toChar().toString()
+                        data = connection.inputStream.read()
+                    }
+                } catch (e: InterruptedException) {
+                    Log.e("TAG", "Не удалось поставить лайк")
+                }
+            }.start()
         }
     }
 
@@ -47,6 +104,9 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>) : RecyclerView.Ada
         var image: ImageView? = null
         var userAvatar: ImageView? = null
         var root: View? = null
+        var like: View? = null
+        var likes: TextView? = null
+        var likeImage: ImageView? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -55,6 +115,9 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>) : RecyclerView.Ada
             image = itemView.findViewById(R.id.news_image)
             userAvatar = itemView.findViewById(R.id.news_avatar)
             root = itemView.findViewById(R.id.home_news_item)
+            like = itemView.findViewById(R.id.news_like)
+            likes = itemView.findViewById(R.id.news_likes)
+            likeImage = itemView.findViewById(R.id.like_image)
         }
     }
 }

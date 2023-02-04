@@ -13,17 +13,31 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 
 class MainActivity : AppCompatActivity() {
+    var user: String? = null
+    var userData: JSONObject? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val util = Utils()
+        user = util.readUserFile(File(filesDir, Utils().userFileName))
+        userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
         if(util.readUserFile(File(filesDir, util.userFileName)).isNotEmpty()) {
-            runHomeActivity()
+            try {
+                if(JSONObject(user).getString("token") != null) {
+                    runHomeActivity()
+                }
+            } catch(e: JSONException) {
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         var listView = findViewById<ListView>(R.id.capabilitiesList)
@@ -43,10 +57,7 @@ class MainActivity : AppCompatActivity() {
         anim.repeatMode = ValueAnimator.REVERSE
         anim.duration = 2000
         anim.start()
-
-        val file = File(filesDir, Utils().userFileName)
-        val user = Utils().readUserFile(file)
-        Log.e("TAG", user)
+        Log.e("TAG", user!!)
         Toast.makeText(this, user, Toast.LENGTH_LONG).show()
     }
     fun runLoginActivity(view: View) {

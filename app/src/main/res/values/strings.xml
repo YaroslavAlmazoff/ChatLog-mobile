@@ -63,4 +63,7 @@
     <string name="link_ads">Объявления</string>
     <string name="link_adverts">Реклама</string>
     <string name="link_shop">Магазин</string>
+    <string name="link_quit">Выйти</string>
+
+    <string name="likes">0</string>
 </resources>
