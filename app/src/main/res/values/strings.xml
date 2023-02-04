@@ -66,4 +66,6 @@
     <string name="link_quit">Выйти</string>
 
     <string name="likes">0</string>
+
+    <string name="user_item_button">Переписка</string>
 </resources>
