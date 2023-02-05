@@ -1,10 +1,13 @@
 package com.chatlog.chatlog
 
+import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
@@ -23,6 +26,12 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
         }
         if(holder.avatar != null && user.avatarUrl != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${user.avatarUrl}").into(holder.avatar)
+            holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        holder.userItem?.setOnClickListener {
+            val intent = Intent(it.context, MyProfileActivity::class.java)
+            intent.putExtra("user_data", "{\"name\": \"${user.name}\", \"surname\": \"${user.surname}\", \"age\": \"${user.birthDate}\"}")
+            it.context.startActivity(intent)
         }
     }
 
@@ -36,12 +45,14 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
         var birthDate: TextView? = null
         var address: TextView? = null
         var avatar: ImageView? = null
+        var userItem: View? = null
 
         init {
             nameAndSurname = itemView.findViewById(R.id.user_item_name_and_surname)
             birthDate = itemView.findViewById(R.id.user_item_birth_date)
             address = itemView.findViewById(R.id.user_item_address)
             avatar = itemView.findViewById(R.id.user_item_avatar)
+            userItem = itemView.findViewById(R.id.user_item)
         }
     }
 }

@@ -68,4 +68,6 @@
     <string name="likes">0</string>
 
     <string name="user_item_button">Переписка</string>
+
+    <string name="user_test">Информация о пользователе</string>
 </resources>
