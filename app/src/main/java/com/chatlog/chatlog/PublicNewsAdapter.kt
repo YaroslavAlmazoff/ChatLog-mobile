@@ -1,11 +1,13 @@
 package com.chatlog.chatlog
 
+import android.content.Intent
 import android.graphics.Color
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -48,6 +50,22 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
             Log.e("TAG", item.userAvatar)
             Picasso.get().load(Constants().SITE_NAME_FILES + "/publicavatars/${item.userAvatar}").into(holder.userAvatar)
             holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        if(item.images.length() != 0 && item.images.length() != 1) {
+            holder.viewAllImagesButton?.visibility = View.VISIBLE
+        }
+        holder.viewAllImagesButton?.setOnClickListener {
+            Log.e("TAG", item.images.toString())
+            if(item.images.length() > 1) {
+                val imagesArray: ArrayList<String> = ArrayList()
+                for(i in 0 until item.images.length()) {
+                    imagesArray.add(item.images.getString(i))
+                }
+
+                val intent = Intent(it.context, PublicPhotosActivity::class.java)
+                intent.putStringArrayListExtra("photos", imagesArray)
+                it.context.startActivity(intent)
+            }
         }
         holder.like?.setOnClickListener {
             if(item.liked) {
@@ -97,6 +115,7 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
         var like: View? = null
         var likes: TextView? = null
         var likeImage: ImageView? = null
+        var viewAllImagesButton: Button? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -108,6 +127,7 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
             like = itemView.findViewById(R.id.news_like)
             likes = itemView.findViewById(R.id.news_likes)
             likeImage = itemView.findViewById(R.id.like_image)
+            viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
         }
     }
 }

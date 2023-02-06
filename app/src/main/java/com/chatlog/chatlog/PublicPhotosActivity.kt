@@ -8,7 +8,7 @@ import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-class PhotosActivity : AppCompatActivity() {
+class PublicPhotosActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photos)
@@ -23,7 +23,7 @@ class PhotosActivity : AppCompatActivity() {
 
         val photosList = findViewById<RecyclerView>(R.id.photos_list)
         val goBackButton = findViewById<Button>(R.id.go_back)
-        photosList.adapter = PhotosAdapter(photosArray, "articles")
+        photosList.adapter = PhotosAdapter(photosArray, "publicposts")
         photosList.layoutManager = LinearLayoutManager(this)
 
         goBackButton.setOnClickListener {

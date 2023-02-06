@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity() {
         anim.duration = 2000
         anim.start()
         Log.e("TAG", user!!)
-        Toast.makeText(this, user, Toast.LENGTH_LONG).show()
     }
     fun runLoginActivity(view: View) {
         val intent = Intent(this, LoginActivity::class.java)

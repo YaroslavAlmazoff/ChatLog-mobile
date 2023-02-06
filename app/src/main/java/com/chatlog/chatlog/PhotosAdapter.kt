@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class PhotosAdapter(private val photos: ArrayList<Photo>) : RecyclerView.Adapter<PhotosAdapter.ViewHolder>() {
+class PhotosAdapter(private val photos: ArrayList<Photo>, private val dir: String) : RecyclerView.Adapter<PhotosAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.photo_item, parent, false)
@@ -21,7 +21,7 @@ class PhotosAdapter(private val photos: ArrayList<Photo>) : RecyclerView.Adapter
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = photos[position]
         if(holder.image != null && item.url != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/articles/${item.url}").into(holder.image)
+            Picasso.get().load(Constants().SITE_NAME_FILES + "/$dir/${item.url}").into(holder.image)
         }
     }
 

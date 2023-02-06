@@ -39,13 +39,13 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         holder.likeImage?.setImageResource(R.drawable.blue_like)
         Log.e("TAG", item.liked.toString())
         if(item.liked) {
-            holder.likes?.text = (item.likes - 1).toString()
-            holder.likeImage?.setImageResource(R.drawable.blue_like)
-            holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
-        } else {
-            holder.likes?.text = (item.likes + 1).toString()
+            holder.likes?.text = item.likes.toString()
             holder.likeImage?.setImageResource(R.drawable.red_like)
             holder.likes?.setTextColor(Color.parseColor("#FF073A"))
+        } else {
+            holder.likes?.text = item.likes.toString()
+            holder.likeImage?.setImageResource(R.drawable.blue_like)
+            holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
         }
 
         if(item.image == "") {
@@ -56,7 +56,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.userAvatar}").into(holder.userAvatar)
             holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
         }
-        if(item.images.length() != 0 || item.images.length() != 1) {
+        if(item.images.length() != 0 && item.images.length() != 1) {
             holder.viewAllImagesButton?.visibility = View.VISIBLE
         }
         holder.viewAllImagesButton?.setOnClickListener {
@@ -74,13 +74,13 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         }
         holder.like?.setOnClickListener {
             if(item.liked) {
-                holder.likes?.text = item.likes.toString()
-                holder.likeImage?.setImageResource(R.drawable.red_like)
-                holder.likes?.setTextColor(Color.parseColor("#FF073A"))
-            } else {
-                holder.likes?.text = item.likes.toString()
+                holder.likes?.text = (item.likes - 1).toString()
                 holder.likeImage?.setImageResource(R.drawable.blue_like)
                 holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
+            } else {
+                holder.likes?.text = (item.likes + 1).toString()
+                holder.likeImage?.setImageResource(R.drawable.red_like)
+                holder.likes?.setTextColor(Color.parseColor("#FF073A"))
             }
             Thread {
                 try {
@@ -104,6 +104,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
                         result += data.toChar().toString()
                         data = connection.inputStream.read()
                     }
+                    Log.e("TAG", result)
                 } catch (e: InterruptedException) {
                     Log.e("TAG", "Не удалось поставить лайк")
                 }

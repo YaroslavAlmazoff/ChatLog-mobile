@@ -22,7 +22,8 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
         val user = people[position]
         holder.nameAndSurname?.text = user.name + " " + user.surname
         if(user.country.isNotEmpty() && user.city.isNotEmpty()) {
-            holder.address?.text = user.city + ", " + user.country
+            val unicode = 0x1F3E0
+            holder.address?.text = Utils().getEmojiByUnicode(unicode) + user.city + ", " + user.country
         }
         if(holder.avatar != null && user.avatarUrl != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${user.avatarUrl}").into(holder.avatar)
