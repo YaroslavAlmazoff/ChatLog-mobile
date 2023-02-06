@@ -25,12 +25,15 @@
         <entry key="app/src/main/res/layout/activity_my_profile.xml" value="0.15220179563916203" />
         <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_people.xml" value="0.25951261222744765" />
+        <entry key="app/src/main/res/layout/activity_photos.xml" value="0.16631038905515177" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.2578024796921761" />
         <entry key="app/src/main/res/layout/activity_support.xml" value="0.25" />
         <entry key="app/src/main/res/layout/capabilities_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_navigation.xml" value="0.24882428388200087" />
         <entry key="app/src/main/res/layout/home_news_item.xml" value="0.271483539974348" />
         <entry key="app/src/main/res/layout/news_item.xml" value="0.19623770842240273" />
+        <entry key="app/src/main/res/layout/photo_item.xml" value="0.16545532278751604" />
+        <entry key="app/src/main/res/layout/small_image.xml" value="0.19752030782385635" />
         <entry key="app/src/main/res/layout/user_item.xml" value="0.2586575459598119" />
       </map>
     </option>

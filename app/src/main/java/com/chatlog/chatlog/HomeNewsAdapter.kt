@@ -2,16 +2,19 @@ package com.chatlog.chatlog
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.provider.SyncStateContract.Helpers
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -52,6 +55,22 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             Log.e("TAG", item.userAvatar)
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.userAvatar}").into(holder.userAvatar)
             holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        if(item.images.length() != 0 || item.images.length() != 1) {
+            holder.viewAllImagesButton?.visibility = View.VISIBLE
+        }
+        holder.viewAllImagesButton?.setOnClickListener {
+            Log.e("TAG", item.images.toString())
+            if(item.images.length() > 1) {
+                val imagesArray: ArrayList<String> = ArrayList()
+                for(i in 0 until item.images.length()) {
+                    imagesArray.add(item.images.getString(i))
+                }
+
+                val intent = Intent(it.context, PhotosActivity::class.java)
+                intent.putStringArrayListExtra("photos", imagesArray)
+                it.context.startActivity(intent)
+            }
         }
         holder.like?.setOnClickListener {
             if(item.liked) {
@@ -107,6 +126,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         var like: View? = null
         var likes: TextView? = null
         var likeImage: ImageView? = null
+        var viewAllImagesButton: Button? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -118,6 +138,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             like = itemView.findViewById(R.id.news_like)
             likes = itemView.findViewById(R.id.news_likes)
             likeImage = itemView.findViewById(R.id.like_image)
+            viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
         }
     }
 }

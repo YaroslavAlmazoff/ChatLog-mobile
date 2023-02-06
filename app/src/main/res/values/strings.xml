@@ -66,8 +66,10 @@
     <string name="link_quit">Выйти</string>
 
     <string name="likes">0</string>
+    <string name="view_all_images">Посмотреть все изображения</string>
+    <string name="view_all_images_back">Вернуться назад</string>
+
 
     <string name="user_item_button">Переписка</string>
-
     <string name="user_test">Информация о пользователе</string>
 </resources>

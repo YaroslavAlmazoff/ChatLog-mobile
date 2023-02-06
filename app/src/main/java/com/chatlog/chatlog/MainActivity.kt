@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val util = Utils()
         user = util.readUserFile(File(filesDir, Utils().userFileName))
-        userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+        if(user?.isNotEmpty() == true) {
+            userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+        }
         if(util.readUserFile(File(filesDir, util.userFileName)).isNotEmpty()) {
             try {
                 if(JSONObject(user).getString("token") != null) {
