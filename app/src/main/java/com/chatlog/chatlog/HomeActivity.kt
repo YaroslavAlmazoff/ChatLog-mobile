@@ -123,6 +123,7 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getString("avatar"),
                 if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else "",
                 newsArray.getJSONObject(i).getInt("likes"),
+                newsArray.getJSONObject(i).getInt("comments"),
                 newsArray.getJSONObject(i).getBoolean("liked"),
                 newsArray.getJSONObject(i).getJSONArray("images"),
                 newsArray.getJSONObject(i).getString("_id")
@@ -146,6 +147,7 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getString("avatar"),
                 if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else "",
                 newsArray.getJSONObject(i).getInt("likes"),
+                newsArray.getJSONObject(i).getInt("comments"),
                 newsArray.getJSONObject(i).getBoolean("liked"),
                 newsArray.getJSONObject(i).getJSONArray("images"),
                 newsArray.getJSONObject(i).getString("_id")

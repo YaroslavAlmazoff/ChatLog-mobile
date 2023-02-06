@@ -18,6 +18,7 @@
         <entry key="app/src/main/res/drawable/gradient5.xml" value="0.203" />
         <entry key="app/src/main/res/drawable/gradient6.xml" value="0.203" />
         <entry key="app/src/main/res/drawable/rounded.xml" value="0.333" />
+        <entry key="app/src/main/res/layout/activity_comments.xml" value="0.1902654867256637" />
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.2578024796921761" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.335" />
@@ -26,9 +27,11 @@
         <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_people.xml" value="0.25951261222744765" />
         <entry key="app/src/main/res/layout/activity_photos.xml" value="0.16631038905515177" />
+        <entry key="app/src/main/res/layout/activity_public_photos.xml" value="0.20949123557075675" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.2578024796921761" />
         <entry key="app/src/main/res/layout/activity_support.xml" value="0.25" />
         <entry key="app/src/main/res/layout/capabilities_item.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/comment_item.xml" value="0.20574162679425836" />
         <entry key="app/src/main/res/layout/fragment_navigation.xml" value="0.24882428388200087" />
         <entry key="app/src/main/res/layout/home_news_item.xml" value="0.271483539974348" />
         <entry key="app/src/main/res/layout/news_item.xml" value="0.19623770842240273" />

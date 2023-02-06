@@ -33,11 +33,13 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         holder.date?.text = item.date
         holder.user?.text = item.user
         holder.likes?.text = item.likes.toString()
+        holder.comments?.text = item.comments.toString()
         if(holder.image != null && item.image != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/articles/${item.image}").into(holder.image)
         }
         holder.likeImage?.setImageResource(R.drawable.blue_like)
         Log.e("TAG", item.liked.toString())
+        Log.e("TAG", item.comments.toString())
         if(item.liked) {
             holder.likes?.text = item.likes.toString()
             holder.likeImage?.setImageResource(R.drawable.red_like)
@@ -71,6 +73,11 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
                 intent.putStringArrayListExtra("photos", imagesArray)
                 it.context.startActivity(intent)
             }
+        }
+        holder.comment?.setOnClickListener {
+            val intent = Intent(it.context, CommentsActivity::class.java)
+            intent.putExtra("id", item.id)
+            it.context.startActivity(intent)
         }
         holder.like?.setOnClickListener {
             if(item.liked) {
@@ -127,6 +134,9 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         var like: View? = null
         var likes: TextView? = null
         var likeImage: ImageView? = null
+        var comment: View? = null
+        var comments: TextView? = null
+        var commentImage: ImageView? = null
         var viewAllImagesButton: Button? = null
 
         init {
@@ -139,6 +149,9 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             like = itemView.findViewById(R.id.news_like)
             likes = itemView.findViewById(R.id.news_likes)
             likeImage = itemView.findViewById(R.id.like_image)
+            comment = itemView.findViewById(R.id.news_comment)
+            comments = itemView.findViewById(R.id.news_comments)
+            commentImage = itemView.findViewById(R.id.comment_image)
             viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
         }
     }
