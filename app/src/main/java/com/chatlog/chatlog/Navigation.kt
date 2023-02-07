@@ -6,8 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import org.json.JSONObject
+import java.io.File
 
 class Navigation: Fragment() {
+    var user: JSONObject? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -21,12 +24,16 @@ class Navigation: Fragment() {
         val navMessenger = rootView.findViewById<View>(R.id.nav_messenger_view)
         val navOther = rootView.findViewById<View>(R.id.nav_other_view)
 
+        val util = Utils()
+        user = JSONObject(util.readUserFile(File(context?.filesDir, util.userFileName))).getJSONObject("user")
+
         navHome.setOnClickListener {
             val intent = Intent(activity, HomeActivity::class.java)
             activity?.startActivity(intent)
         }
         navProfile.setOnClickListener {
-            val intent = Intent(activity, MyProfileActivity::class.java)
+            val intent = Intent(activity, UserActivity::class.java)
+            intent.putExtra("id", user?.getString("_id"))
             activity?.startActivity(intent)
         }
         navPeople.setOnClickListener {

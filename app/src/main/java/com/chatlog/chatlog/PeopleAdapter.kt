@@ -1,13 +1,11 @@
 package com.chatlog.chatlog
 
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
@@ -30,8 +28,8 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
             holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
         }
         holder.userItem?.setOnClickListener {
-            val intent = Intent(it.context, MyProfileActivity::class.java)
-            intent.putExtra("user_data", "{\"name\": \"${user.name}\", \"surname\": \"${user.surname}\", \"age\": \"${user.birthDate}\"}")
+            val intent = Intent(it.context, UserActivity::class.java)
+            intent.putExtra("id", user.id)
             it.context.startActivity(intent)
         }
     }

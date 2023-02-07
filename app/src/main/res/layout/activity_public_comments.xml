@@ -5,5 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PublicCommentsActivity">
-
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentDetails"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        class="com.chatlog.chatlog.Navigation"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

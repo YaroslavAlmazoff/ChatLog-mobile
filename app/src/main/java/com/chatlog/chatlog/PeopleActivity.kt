@@ -47,6 +47,7 @@ class PeopleActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getString("country"),
                 usersArray.getJSONObject(i).getString("city"),
                 usersArray.getJSONObject(i).getString("avatarUrl"),
+                usersArray.getJSONObject(i).getString("_id")
             ))
         }
     }

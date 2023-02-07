@@ -4,8 +4,11 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import org.json.JSONObject
+import java.io.File
 
 class NavigationActivity : AppCompatActivity() {
+    var user: JSONObject? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
@@ -21,12 +24,16 @@ class NavigationActivity : AppCompatActivity() {
         val cloud = findViewById<View>(R.id.link_cloud)
         val quit = findViewById<View>(R.id.link_quit)
 
+        val util = Utils()
+        user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
+
         home.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
         }
         profile.setOnClickListener {
-            val intent = Intent(this, MyProfileActivity::class.java)
+            val intent = Intent(this, UserActivity::class.java)
+            intent.putExtra("id", user?.getString("_id"))
             startActivity(intent)
         }
         messenger.setOnClickListener {

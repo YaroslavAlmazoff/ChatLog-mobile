@@ -75,4 +75,9 @@
 
     <string name="user_item_button">Переписка</string>
     <string name="user_test">Информация о пользователе</string>
+
+    <string name="user_name">Username</string>
+    <string name="user_date">Userdate</string>
+    <string name="user_place">Userplace</string>
+    <string name="user_about_me">About Me</string>
 </resources>
