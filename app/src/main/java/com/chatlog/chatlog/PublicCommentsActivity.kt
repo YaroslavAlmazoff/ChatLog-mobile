@@ -8,7 +8,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
@@ -16,7 +15,7 @@ import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class CommentsActivity : AppCompatActivity() {
+class PublicCommentsActivity : AppCompatActivity() {
     var commentsList: RecyclerView? = null
     var noComments: TextView? = null
     var commentField: EditText? = null
@@ -80,21 +79,21 @@ class CommentsActivity : AppCompatActivity() {
         }.start()
     }
     private fun getComments(comments: ArrayList<Comment>, id: String) {
-        val json = URL(Constants().SITE_NAME + "/userpost/comments/${id}").readText(Charsets.UTF_8)
+        val json = URL(Constants().SITE_NAME + "public/comments/${id}").readText(Charsets.UTF_8)
         val commentsArray = JSONObject(json).getJSONArray("comments")
         for(i in 0 until commentsArray.length()) {
             comments.add(
                 Comment(
-                commentsArray.getJSONObject(i).getString("userName"),
-                commentsArray.getJSONObject(i).getString("comment"),
-                commentsArray.getJSONObject(i).getString("date"),
-                commentsArray.getJSONObject(i).getString("avatarUrl"),
-            ))
+                    commentsArray.getJSONObject(i).getString("userName"),
+                    commentsArray.getJSONObject(i).getString("text"),
+                    commentsArray.getJSONObject(i).getString("date"),
+                    commentsArray.getJSONObject(i).getString("avatarUrl"),
+                ))
         }
     }
     private fun sendComment(id: String, comments: ArrayList<Comment>) {
         val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "userpost/comment/$id")
+        val url = URL(Constants().SITE_NAME + "public/comment/$id")
         val connection = url.openConnection() as HttpsURLConnection
         connection.requestMethod = "POST"
         connection.doOutput = true
@@ -115,7 +114,7 @@ class CommentsActivity : AppCompatActivity() {
         val responseComment = JSONObject(result).getJSONObject("comment")
         comments.add(Comment(
             responseComment.getString("userName"),
-            responseComment.getString("comment"),
+            responseComment.getString("text"),
             responseComment.getString("date"),
             responseComment.getString("avatarUrl")
         ))
