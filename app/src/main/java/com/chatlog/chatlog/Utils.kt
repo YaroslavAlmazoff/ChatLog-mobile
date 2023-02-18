@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.graphics.Color
 import android.util.Log
 import org.json.JSONObject
 import java.io.*
@@ -65,5 +66,8 @@ class Utils {
     }
     fun getEmojiByUnicode(unicode: Int): String? {
         return String(Character.toChars(unicode))
+    }
+    fun generateRandomNeonColor(): Int {
+        return Color.parseColor(Constants().neonColors[Math.random().toInt()])
     }
 }

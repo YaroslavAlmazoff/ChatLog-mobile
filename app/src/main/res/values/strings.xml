@@ -29,6 +29,7 @@
     <string name="register_password_hint2">Повторите пароль</string>
     <string name="register_country_hint">Ваша страна (необязательно)</string>
     <string name="register_city_hint">Ваш город (необязательно)</string>
+    <string name="update_profile_hint">О себе (необязательно)</string>
 
     <string name="register_password_small_error">Пароль должен содержать не менее 8 символов</string>
     <string name="register_passwords_not_match_error">Пароли должны совпадать</string>
@@ -80,4 +81,24 @@
     <string name="user_date">Userdate</string>
     <string name="user_place">Userplace</string>
     <string name="user_about_me">About Me</string>
+    <string name="user_friend">Friend</string>
+    <string name="user_friends">Friends</string>
+    <string name="user_friends_button">Добавить в друзья</string>
+    <string name="user_message_button">Переписка</string>
+    <string name="user_create_button">Новая запись</string>
+    <string name="user_update_button">Обновить профиль</string>
+    <string name="user_notifications_button">Уведомления</string>
+    <string name="already_in_friends">У вас в друзьях</string>
+    <string name="waiting_for_friends">Отправлена заявка</string>
+    <string name="friends_request">Вы отправили заявку в друзья</string>
+
+    <string name="update_profile_title">Обновление профиля</string>
+    <string name="update_profile_add_avatar">Добавить аватар</string>
+    <string name="update_profile_add_banner">Добавить баннер</string>
+    <string name="update_profile_button">Обновить профиль</string>
+
+    <string name="notification_check_profile">Посмотреть профиль</string>
+    <string name="notification_reply">Принять</string>
+    <string name="notification_reject">Отклонить</string>
+    <string name="notification_check">Профиль</string>
 </resources>
