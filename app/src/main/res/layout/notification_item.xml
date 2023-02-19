@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/notification"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -25,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/blue_empty_button"
-            android:padding="20dp"
+            android:padding="15dp"
             android:text="@string/notification_check_profile"
             android:textColor="@color/neon_blue"
             android:textFontWeight="100"
@@ -33,6 +34,20 @@
             android:layout_weight="1"
             app:buttonColor="@color/g_dark"
             app:glowColor="@color/neon_blue" />
+        <com.sanojpunchihewa.glowbutton.GlowButton
+            android:id="@+id/notification_delete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/blue_empty_button"
+            android:padding="15dp"
+            android:text="@string/delete_notification"
+            android:textColor="@color/orange_neon"
+            android:textFontWeight="100"
+            android:textSize="6pt"
+            android:layout_weight="1"
+            app:buttonColor="@color/g_dark"
+            app:glowColor="@color/orange_neon" />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/notification_complicated"

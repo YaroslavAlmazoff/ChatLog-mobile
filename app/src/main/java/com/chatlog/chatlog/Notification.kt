@@ -5,4 +5,5 @@ data class Notification(var title: String,
                         var from: String = "",
                         var to: String = "",
                         var postType: String = "",
-                        var postId: String = "")
+                        var postId: String = "",
+                        var id: String)

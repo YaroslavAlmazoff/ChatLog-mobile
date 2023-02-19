@@ -133,7 +133,7 @@ class UserActivity : AppCompatActivity() {
 
         var notificationsArr: ArrayList<Notification> = ArrayList()
 
-        notificationsList?.adapter = NotificationsAdapter(notificationsArr)
+        notificationsList?.adapter = NotificationsAdapter(notificationsArr, userData!!)
         notificationsList?.layoutManager = LinearLayoutManager(this)
 
         if (userId != null) {
@@ -390,7 +390,8 @@ class UserActivity : AppCompatActivity() {
                 notificationsArray.getJSONObject(i).getString("from"),
                 notificationsArray.getJSONObject(i).getString("to"),
                 notificationsArray.getJSONObject(i).getString("postType"),
-                notificationsArray.getJSONObject(i).getString("postID")))
+                notificationsArray.getJSONObject(i).getString("postID"),
+                notificationsArray.getJSONObject(i).getString("_id")))
         }
 
     }

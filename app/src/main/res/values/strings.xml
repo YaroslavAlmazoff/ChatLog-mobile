@@ -87,6 +87,7 @@
     <string name="user_message_button">Переписка</string>
     <string name="user_create_button">Новая запись</string>
     <string name="user_update_button">Обновить профиль</string>
+    <string name="delete_notification">Удалить уведомление</string>
     <string name="user_notifications_button">Уведомления</string>
     <string name="already_in_friends">У вас в друзьях</string>
     <string name="waiting_for_friends">Отправлена заявка</string>
@@ -101,4 +102,8 @@
     <string name="notification_reply">Принять</string>
     <string name="notification_reject">Отклонить</string>
     <string name="notification_check">Профиль</string>
+    <string name="already_friends">Теперь вы друзья</string>
+    <string name="rejected">Заявка в друзья отклонена</string>
+    <string name="file_ok">Файл не получен</string>
+    <string name="file_rejected">Вы успешно получили файл</string>
 </resources>
