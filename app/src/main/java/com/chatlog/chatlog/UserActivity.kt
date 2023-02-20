@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.InputStream
@@ -42,6 +43,8 @@ class UserActivity : AppCompatActivity() {
     var writeMessageButton: Button? = null
     var alreadyInFriends: TextView? = null
 
+    var postsList: RecyclerView? = null
+
     val friendsArray: ArrayList<Friend> = ArrayList()
     var notificationsList: RecyclerView? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +65,7 @@ class UserActivity : AppCompatActivity() {
     private fun initialize() {
         val util = Utils()
         val userId = intent.getStringExtra("id")
+
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
         userName = findViewById(R.id.user_name)
         userDate = findViewById(R.id.user_date)
@@ -108,9 +112,6 @@ class UserActivity : AppCompatActivity() {
 
         val notOwnerOptions = findViewById<View>(R.id.not_owner_options)
         val ownerOptions = findViewById<View>(R.id.owner_options)
-        if (userId != null) {
-            getUserInBackground(userId)
-        }
         isOwner = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user").getString("_id") == userId
         if(isOwner) {
             notOwnerOptions.visibility = View.GONE
@@ -124,6 +125,13 @@ class UserActivity : AppCompatActivity() {
         val friendsList = findViewById<RecyclerView>(R.id.friends_list)
         val c = Constants()
         friendsArray.add(Friend(c.HIDDEN_ITEM, "user.png", c.HIDDEN_ITEM))
+        var notificationsArr: ArrayList<Notification> = ArrayList()
+        postsList = findViewById(R.id.user_posts)
+        var postsArr: ArrayList<NewsItem> = ArrayList()
+
+        if (userId != null) {
+            getAllInBackground(userId, friendsArray, notificationsArr, postsArr, postsList!!, friendsList)
+        }
 
         val lm = LinearLayoutManager(this)
         lm.orientation = LinearLayoutManager.HORIZONTAL
@@ -131,39 +139,40 @@ class UserActivity : AppCompatActivity() {
         val adapter = FriendsAdapter(friendsArray)
         friendsList?.adapter = adapter
 
-        var notificationsArr: ArrayList<Notification> = ArrayList()
 
         notificationsList?.adapter = NotificationsAdapter(notificationsArr, userData!!)
         notificationsList?.layoutManager = LinearLayoutManager(this)
-
-        if (userId != null) {
-            getFriendsInBackground(userId, friendsArray)
-            checkFriendsInBackground(userId)
-            getNotificationsInBackground(userId, notificationsArr)
-            adapter.notifyDataSetChanged()
-        }
+        postsList?.adapter = HomeNewsAdapter(postsArr, userData!!)
+        postsList?.layoutManager = LinearLayoutManager(this)
     }
-    private fun getUserInBackground(id: String) {
+    private fun getAllInBackground(id: String, friends: ArrayList<Friend>, notifications: ArrayList<Notification>, posts: ArrayList<NewsItem>, postsList: RecyclerView, friendsList: RecyclerView) {
         Thread {
             try {
                 getUser(id)
-            } catch(e: InterruptedException){
-                Log.e("TAG", "Не удалось загрузить пользователя")
+                getFriends(id, friends)
+                checkNotifications(id)
+                checkFriends(id)
+                getNotifications(id, notifications)
+                getPosts(posts, id)
+                runOnUiThread {
+                    postsList.adapter?.notifyDataSetChanged()
+                    friendsList.adapter?.notifyDataSetChanged()
+                }
+
+                for(i in 0 until posts.size) {
+                    Log.e("TAG", posts[i].title)
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", e.message!!)
             }
         }.start()
     }
     private fun getUser(id: String) {
         val userString = URL(Constants().SITE_NAME + "user/$id").readText(Charsets.UTF_8)
         Log.e("TAG", userString)
-        if(userString == "{\"user\":null}") {
-            Log.e("TAG", "backpressed")
-            runOnUiThread {
-                onBackPressed()
-                finish()
-            }
-            return
-        }
         val user = JSONObject(userString).getJSONObject("user")
+        Log.e("TAG", user.getString("bannerUrl"))
+        Log.e("TAG", user.getString("avatarUrl"))
         val bitmap = BitmapFactory.decodeStream(URL(Constants().SITE_NAME_FILES + "/userbanners/${user.getString("bannerUrl")}").content as InputStream)
         val banner: Drawable = BitmapDrawable(resources, bitmap)
         runOnUiThread {
@@ -184,15 +193,6 @@ class UserActivity : AppCompatActivity() {
             userHead?.background = banner
         }
     }
-    private fun getFriendsInBackground(id: String, friends: ArrayList<Friend>) {
-        Thread {
-            try {
-                getFriends(id, friends)
-            } catch(e: InterruptedException){
-                Log.e("TAG", "Не удалось загрузить друзей пользователя")
-            }
-        }.start()
-    }
     private fun getFriends(id: String, friends: ArrayList<Friend>) {
         val friendsArray = URL(Constants().SITE_NAME + "userfriends/$id").readText(Charsets.UTF_8)
         val jsonFriends = JSONObject(friendsArray).getJSONArray("friends")
@@ -205,16 +205,6 @@ class UserActivity : AppCompatActivity() {
             val friendsCount = findViewById<TextView>(R.id.user_friends_count)
             friendsCount.text = "Друзья " + jsonFriends.length().toString()
         }
-    }
-    private fun checkFriendsInBackground(id: String) {
-        Thread {
-            try {
-                checkNotifications(id)
-                checkFriends(id)
-            } catch(e: InterruptedException){
-                Log.e("TAG", "Не удалось загрузить друзей пользователя")
-            }
-        }.start()
     }
     private fun checkNotifications(id: String) {
         val token = userData?.getString("token")
@@ -369,15 +359,6 @@ class UserActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-    private fun getNotificationsInBackground(id: String, notifications: ArrayList<Notification>) {
-        Thread {
-            try {
-                getNotifications(id, notifications)
-            } catch(e: InterruptedException) {
-                Log.e("TAG", "все плохо")
-            }
-        }.start()
-    }
     private fun getNotifications(id: String, notifications: ArrayList<Notification>) {
         val notificationsData = URL(Constants().SITE_NAME + "getnotifications/$id").readText(Charsets.UTF_8)
         Log.e("TAG", notificationsData)
@@ -394,5 +375,24 @@ class UserActivity : AppCompatActivity() {
                 notificationsArray.getJSONObject(i).getString("_id")))
         }
 
+    }
+    private fun getPosts(posts: ArrayList<NewsItem>, id: String) {
+        val newsData = URL(Constants().SITE_NAME + "getuserpostsmobile/$id").readText(Charsets.UTF_8)
+        Log.e("TAG", newsData)
+        val newsArray = JSONObject(newsData).getJSONArray("posts")
+        for(i in 0 until newsArray.length()) {
+            posts.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
+                newsArray.getJSONObject(i).getString("date"),
+                newsArray.getJSONObject(i).getString("userName"),
+                newsArray.getJSONObject(i).getString("avatar"),
+                if(newsArray.getJSONObject(i).getJSONArray("images").length() > 0) newsArray.getJSONObject(i).getJSONArray("images").getString(0) else "",
+                newsArray.getJSONObject(i).getInt("likes"),
+                newsArray.getJSONObject(i).getInt("comments"),
+                newsArray.getJSONObject(i).getBoolean("liked"),
+                newsArray.getJSONObject(i).getJSONArray("images"),
+                newsArray.getJSONObject(i).getString("_id")
+            ))
+            Log.e("TAG", newsArray.getJSONObject(i).getString("title"))
+        }
     }
 }
