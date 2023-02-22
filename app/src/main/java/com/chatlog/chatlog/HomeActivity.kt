@@ -31,7 +31,17 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-
+        initialize()
+    }
+    override fun onRestart() {
+        super.onRestart()
+        initialize()
+    }
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        initialize()
+    }
+    private fun initialize() {
         val util = Utils()
 
         val homeGreeting = findViewById<TextView>(R.id.home_greeting)
@@ -98,8 +108,14 @@ class HomeActivity : AppCompatActivity() {
             try {
                 if(isFriends) {
                     getFriendsNews(news)
+                    runOnUiThread {
+                        newsList?.adapter?.notifyDataSetChanged()
+                    }
                 } else {
                     getPublicNews(news)
+                    runOnUiThread {
+                        publicNewsList?.adapter?.notifyDataSetChanged()
+                    }
                 }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")

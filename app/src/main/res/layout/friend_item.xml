@@ -16,12 +16,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:cardCornerRadius="314dp"
         android:elevation="10dp">
-        <ImageView
-            android:id="@+id/friend_avatar"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/nav_profile"
-            android:background="@drawable/rounded"/>
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/friend_avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/nav_profile"
+                android:background="@drawable/rounded"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
     <TextView
         android:id="@+id/friend_name"

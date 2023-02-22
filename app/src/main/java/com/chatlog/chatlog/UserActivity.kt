@@ -42,6 +42,8 @@ class UserActivity : AppCompatActivity() {
     var makeFriendsButton: Button? = null
     var writeMessageButton: Button? = null
     var alreadyInFriends: TextView? = null
+    var createPostButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
+    var removeFromFriends: com.sanojpunchihewa.glowbutton.GlowButton? = null
 
     var postsList: RecyclerView? = null
 
@@ -77,6 +79,8 @@ class UserActivity : AppCompatActivity() {
         makeFriendsButton = findViewById(R.id.user_friends_button)
         writeMessageButton = findViewById(R.id.user_message_button)
         alreadyInFriends = findViewById(R.id.already_in_friends)
+        removeFromFriends = findViewById(R.id.user_delete_friend)
+
 
         val notificationIcon = findViewById<ImageView>(R.id.notification_icon)
         notificationsList = findViewById(R.id.user_notifications)
@@ -87,15 +91,18 @@ class UserActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        notificationIcon.visibility = View.VISIBLE
 
-        notificationIcon.setOnClickListener {
-            if(isNotificationsDisplay) {
-                notificationsList?.visibility = View.GONE
-                isNotificationsDisplay = false
-            } else {
-                notificationsList?.visibility = View.VISIBLE
-                isNotificationsDisplay = true
+        if (isOwner) {
+            notificationIcon.visibility = View.VISIBLE
+
+            notificationIcon.setOnClickListener {
+                if(isNotificationsDisplay) {
+                    notificationsList?.visibility = View.GONE
+                    isNotificationsDisplay = false
+                } else {
+                    notificationsList?.visibility = View.VISIBLE
+                    isNotificationsDisplay = true
+                }
             }
         }
 
@@ -108,6 +115,10 @@ class UserActivity : AppCompatActivity() {
             if (userId != null) {
                 checkRoomsInBackground(userId)
             }
+        }
+        createPostButton?.setOnClickListener {
+            val intent = Intent(this, CreatePostActivity::class.java)
+            startActivity(intent)
         }
 
         val notOwnerOptions = findViewById<View>(R.id.not_owner_options)
@@ -142,7 +153,7 @@ class UserActivity : AppCompatActivity() {
 
         notificationsList?.adapter = NotificationsAdapter(notificationsArr, userData!!)
         notificationsList?.layoutManager = LinearLayoutManager(this)
-        postsList?.adapter = HomeNewsAdapter(postsArr, userData!!)
+        postsList?.adapter = HomeNewsAdapter(postsArr, userData!!, isOwner)
         postsList?.layoutManager = LinearLayoutManager(this)
     }
     private fun getAllInBackground(id: String, friends: ArrayList<Friend>, notifications: ArrayList<Notification>, posts: ArrayList<NewsItem>, postsList: RecyclerView, friendsList: RecyclerView) {
@@ -177,8 +188,12 @@ class UserActivity : AppCompatActivity() {
         val banner: Drawable = BitmapDrawable(resources, bitmap)
         runOnUiThread {
             userName?.text = user.getString("name")
-            userDate?.text = user.getString("age")
-            if(user.getString("city") != "") {
+            if(user.getString("age").isNotEmpty()) {
+                userDate?.visibility = View.VISIBLE
+                userDate?.text = user.getString("age")
+            }
+            if(user.getString("city").isNotEmpty()) {
+                userPlace?.visibility = View.VISIBLE
                 val unicode = 0x1F3E0
                 userPlace?.text = Utils().getEmojiByUnicode(unicode) + user?.getString("city").toString()
             }
@@ -251,10 +266,46 @@ class UserActivity : AppCompatActivity() {
         if(isFriends) {
             runOnUiThread {
                 makeFriendsButton?.visibility = View.GONE
-                alreadyInFriends?.visibility = View.VISIBLE
+                removeFromFriends?.visibility = View.VISIBLE
+                removeFromFriends?.setOnClickListener {
+                    deleteFriendInBackground(id)
+                }
             }
         }
     }
+
+    private fun deleteFriendInBackground(id: String) {
+        Thread {
+            try {
+                deleteFriend(id)
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "Не удалось удалить из друзей")
+            }
+        }.start()
+    }
+
+    private fun deleteFriend(id: String) {
+        val token = userData?.getString("token")
+        val url = URL(Constants().SITE_NAME + "deletefriend/$id")
+        val connection = url.openConnection() as HttpsURLConnection
+        connection.requestMethod = "DELETE"
+        connection.setRequestProperty("Content-Type", "application/json")
+        connection.setRequestProperty("Accept-Charset", "utf-8")
+        connection.setRequestProperty("Authorization", "Bearer $token")
+
+        var data: Int = connection.inputStream.read()
+        var result = ""
+        while(data != -1) {
+            result += data.toChar().toString()
+            data = connection.inputStream.read()
+        }
+        runOnUiThread {
+            Toast.makeText(this, R.string.removed_from_friends, Toast.LENGTH_SHORT).show()
+            removeFromFriends?.visibility = View.GONE
+            makeFriendsButton?.visibility = View.VISIBLE
+        }
+    }
+
     private fun makeFriendsInBackground(id: String) {
         Thread {
             try {
@@ -281,6 +332,8 @@ class UserActivity : AppCompatActivity() {
         }
         runOnUiThread {
             Toast.makeText(this, R.string.friends_request, Toast.LENGTH_SHORT).show()
+            makeFriendsButton?.visibility = View.GONE
+            removeFromFriends?.visibility = View.VISIBLE
         }
     }
     private fun checkRoomsInBackground(id: String) {

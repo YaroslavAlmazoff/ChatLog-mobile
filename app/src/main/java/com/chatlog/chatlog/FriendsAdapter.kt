@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
@@ -36,7 +37,7 @@ class FriendsAdapter(private val items: ArrayList<Friend>) : RecyclerView.Adapte
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.avatarUrl}").into(holder.avatar)
             holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
         }
-        holder.friend?.setOnClickListener {
+        holder.avatarWrapper?.setOnClickListener {
             val intent = Intent(it.context, UserActivity::class.java)
             intent.putExtra("id", item.id)
             it.context.startActivity(intent)
@@ -51,11 +52,13 @@ class FriendsAdapter(private val items: ArrayList<Friend>) : RecyclerView.Adapte
         var name: TextView? = null
         var avatar: ImageView? = null
         var friend: View? = null
+        var avatarWrapper: CardView? = null
 
         init {
             name = itemView.findViewById(R.id.friend_name)
             avatar = itemView.findViewById(R.id.friend_avatar)
             friend = itemView.findViewById(R.id.friend)
+            avatarWrapper = itemView.findViewById((R.id.friend_avatar_wrapper))
         }
     }
 }

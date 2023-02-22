@@ -25,6 +25,19 @@ class CommentsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comments)
+        initialize()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initialize()
+    }
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        initialize()
+    }
+
+    private fun initialize() {
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
@@ -45,8 +58,7 @@ class CommentsActivity : AppCompatActivity() {
             }
         }
         goBackButton.setOnClickListener {
-            val intent = Intent(it.context, HomeActivity::class.java)
-            it.context.startActivity(intent)
+            onBackPressed()
         }
 
         sendButton.setOnClickListener {
@@ -74,6 +86,9 @@ class CommentsActivity : AppCompatActivity() {
         Thread {
             try {
                 getComments(comments, id)
+                runOnUiThread {
+                    commentsList?.adapter?.notifyDataSetChanged()
+                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "Все плохо $e")
             }

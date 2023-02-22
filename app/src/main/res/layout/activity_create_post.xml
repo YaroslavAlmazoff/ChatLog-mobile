@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient2"
+    tools:context=".CreatePostActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:padding="15dp"
+        android:background="@drawable/block"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/create_post_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_post_title"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="14pt"
+            android:shadowColor="@color/neon_blue"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="5"
+            android:fontFamily="sans-serif-thin"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/post_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/create_post_text_hint"
+            android:textColor="@color/neon_blue"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/create_post_title"
+            android:textColorHint="@color/navy_neon"
+            android:backgroundTint="@color/neon_blue"
+            android:padding="20dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/post_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:orientation="horizontal">
+            <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/upload_image_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@drawable/blue_button"
+                android:padding="20dp"
+                android:text="@string/create_post_upload_image"
+                android:onClick="login"
+                android:textColor="@color/black"
+                android:textFontWeight="200"
+                android:textSize="15dp"
+                android:layout_weight="1"
+                app:buttonColor="@color/neon_blue"
+                app:glowColor="@color/neon_blue"
+                app:layout_constraintTop_toBottomOf="@id/passwordField" />
+            <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/send_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@drawable/blue_button"
+                android:padding="20dp"
+                android:text="@string/create_post_send"
+                android:onClick="login"
+                android:textColor="@color/black"
+                android:textFontWeight="200"
+                android:textSize="15dp"
+                android:layout_weight="1"
+                app:buttonColor="@color/neon_blue"
+                app:glowColor="@color/neon_blue"
+                app:layout_constraintTop_toBottomOf="@id/passwordField" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

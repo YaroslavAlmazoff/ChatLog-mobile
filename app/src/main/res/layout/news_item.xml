@@ -52,6 +52,18 @@
                 android:textColor="@color/navy_neon"
                 android:text="@string/loading"
                 android:textSize="8pt" />
+            <TextView
+                android:id="@+id/news_delete"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/news_user"
+                app:layout_constraintStart_toEndOf="@+id/news_date"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginLeft="10dp"
+                android:textColor="@color/red_neon"
+                android:text="@string/delete"
+                android:textSize="8pt" />
         </androidx.constraintlayout.widget.ConstraintLayout>
         <TextView
             android:id="@+id/news_title"

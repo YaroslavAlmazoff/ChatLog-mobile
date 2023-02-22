@@ -24,6 +24,19 @@ class PublicCommentsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comments)
+        initialize()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initialize()
+    }
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        initialize()
+    }
+
+    private fun initialize() {
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 

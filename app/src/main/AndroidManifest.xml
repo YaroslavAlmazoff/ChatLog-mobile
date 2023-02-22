@@ -16,6 +16,9 @@
         android:theme="@style/Theme.ChatLog"
         tools:targetApi="31">
         <activity
+            android:name=".CreatePostActivity"
+            android:exported="false" />
+        <activity
             android:name=".UpdateProfileActivity"
             android:exported="false" />
         <activity

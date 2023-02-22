@@ -1,10 +1,7 @@
 package com.chatlog.chatlog
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.provider.SyncStateContract.Helpers
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,13 +11,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 
-class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
+class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject, private var isOwner: Boolean = false) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.news_item, parent, false)
@@ -48,6 +44,22 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             holder.likes?.text = item.likes.toString()
             holder.likeImage?.setImageResource(R.drawable.blue_like)
             holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
+        }
+
+        if(isOwner) {
+            holder.delete?.visibility = View.VISIBLE
+            holder.delete?.setOnClickListener {
+                Thread {
+                    try {
+                        deletePost(item.id)
+                    } catch(e: InterruptedException) {
+                        Log.e("TAG", e.message!!)
+                    }
+                }.start()
+                items.removeAt(position)
+                notifyItemRemoved(position)
+                notifyItemRangeChanged(position, items.size)
+            }
         }
 
         if(item.image == "") {
@@ -138,6 +150,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         var comments: TextView? = null
         var commentImage: ImageView? = null
         var viewAllImagesButton: Button? = null
+        var delete: TextView? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -153,6 +166,25 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             comments = itemView.findViewById(R.id.news_comments)
             commentImage = itemView.findViewById(R.id.comment_image)
             viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
+            delete = itemView.findViewById(R.id.news_delete)
         }
+    }
+
+    private fun deletePost(id: String) {
+        val token = userData?.getString("token")
+        val url = URL(Constants().SITE_NAME + "deleteuserpost/$id")
+        val connection = url.openConnection() as HttpsURLConnection
+        connection.requestMethod = "DELETE"
+        connection.setRequestProperty("Content-Type", "application/json")
+        connection.setRequestProperty("Accept-Charset", "utf-8")
+        connection.setRequestProperty("Authorization", "Bearer $token")
+
+        var data: Int = connection.inputStream.read()
+        var result = ""
+        while(data != -1) {
+            result += data.toChar().toString()
+            data = connection.inputStream.read()
+        }
+        Log.e("TAG", result)
     }
 }

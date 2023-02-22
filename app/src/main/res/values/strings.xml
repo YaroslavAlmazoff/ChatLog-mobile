@@ -106,4 +106,13 @@
     <string name="rejected">Заявка в друзья отклонена</string>
     <string name="file_ok">Файл не получен</string>
     <string name="file_rejected">Вы успешно получили файл</string>
+    <string name="delete">Удалить</string>
+
+    <string name="create_post_title">Создание записи</string>
+    <string name="create_post_upload_image">Выбрать фото</string>
+    <string name="create_post_text_hint">Что бы Вы хотели написать</string>
+    <string name="create_post_send">Опубликовать</string>
+    <string name="remove">✖</string>
+    <string name="remove_from_friends">Удалить из друзей</string>
+    <string name="removed_from_friends">Вы удалили пользователя из друзей</string>
 </resources>

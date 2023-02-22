@@ -78,6 +78,7 @@
                             android:id="@+id/user_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:visibility="gone"
                             app:layout_constraintTop_toBottomOf="@id/user_name"
                             app:layout_constraintStart_toStartOf="parent"
                             android:fontFamily="sans-serif-thin"
@@ -92,6 +93,7 @@
                             android:id="@+id/user_place"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:visibility="gone"
                             app:layout_constraintTop_toBottomOf="@id/user_date"
                             app:layout_constraintStart_toStartOf="parent"
                             android:fontFamily="sans-serif-thin"
@@ -180,6 +182,21 @@
                     android:layout_weight="1"
                     app:buttonColor="@color/neon_blue"
                     app:glowColor="@color/neon_blue" />
+                <com.sanojpunchihewa.glowbutton.GlowButton
+                    android:id="@+id/user_delete_friend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/blue_button"
+                    android:padding="20dp"
+                    android:visibility="gone"
+                    android:text="@string/remove_from_friends"
+                    android:textColor="@color/black"
+                    android:textFontWeight="200"
+                    android:textSize="15dp"
+                    android:layout_weight="1"
+                    app:buttonColor="@color/red_neon"
+                    app:glowColor="@color/red_neon" />
                 <TextView
                     android:id="@+id/already_in_friends"
                     android:visibility="gone"

@@ -12,7 +12,17 @@ class PublicPhotosActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photos)
-
+        initialize()
+    }
+    override fun onRestart() {
+        super.onRestart()
+        initialize()
+    }
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        initialize()
+    }
+    private fun initialize() {
         val photosArrayData = intent.getStringArrayListExtra("photos")
         Log.e("TAG", photosArrayData.toString())
         val photosArray: ArrayList<Photo> = ArrayList()

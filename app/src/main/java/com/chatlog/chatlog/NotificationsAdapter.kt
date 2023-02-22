@@ -74,6 +74,9 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
                     Log.e("TAG", e.message!!)
                 }
             }.start()
+            items.removeAt(position)
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, items.size)
         }
 
 

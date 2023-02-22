@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +16,17 @@ class PeopleActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people)
-
+        initialize()
+    }
+    override fun onRestart() {
+        super.onRestart()
+        initialize()
+    }
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        initialize()
+    }
+    private fun initialize() {
         usersList = findViewById(R.id.users_list)
         var usersArray: ArrayList<User> = ArrayList()
 
@@ -30,6 +41,9 @@ class PeopleActivity : AppCompatActivity() {
         Thread {
             try {
                 getUsers(users)
+                runOnUiThread {
+                    usersList?.adapter?.notifyDataSetChanged()
+                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
             }
