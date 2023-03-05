@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +22,7 @@ class PublicCommentsActivity : AppCompatActivity() {
     var commentField: EditText? = null
 
     var userData: JSONObject? = null
+    var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comments)
@@ -39,6 +41,7 @@ class PublicCommentsActivity : AppCompatActivity() {
     private fun initialize() {
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+        pb = findViewById(R.id.pb)
 
         val postId = intent.getStringExtra("id")
 
@@ -86,6 +89,9 @@ class PublicCommentsActivity : AppCompatActivity() {
         Thread {
             try {
                 getComments(comments, id)
+                runOnUiThread {
+                    pb?.visibility = View.GONE
+                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "Все плохо $e")
             }

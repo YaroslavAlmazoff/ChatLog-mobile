@@ -48,6 +48,7 @@
             android:backgroundTint="@color/neon_blue"
             android:padding="20dp" />
         <LinearLayout
+            android:id="@+id/buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/post_text"
@@ -55,38 +56,55 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:orientation="horizontal">
             <com.sanojpunchihewa.glowbutton.GlowButton
+                android:id="@+id/go_back"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@drawable/blue_button"
+                android:padding="15dp"
+                android:text="@string/go_back"
+                android:textColor="@color/neon_blue"
+                android:textFontWeight="200"
+                android:textSize="16dp"
+                android:layout_weight="1"
+                app:buttonColor="@color/black"
+                app:glowColor="@color/neon_blue" />
+            <com.sanojpunchihewa.glowbutton.GlowButton
                 android:id="@+id/upload_image_button"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@drawable/blue_button"
-                android:padding="20dp"
+                android:padding="15dp"
                 android:text="@string/create_post_upload_image"
-                android:onClick="login"
                 android:textColor="@color/black"
                 android:textFontWeight="200"
-                android:textSize="15dp"
+                android:textSize="14dp"
                 android:layout_weight="1"
                 app:buttonColor="@color/neon_blue"
-                app:glowColor="@color/neon_blue"
-                app:layout_constraintTop_toBottomOf="@id/passwordField" />
+                app:glowColor="@color/neon_blue" />
             <com.sanojpunchihewa.glowbutton.GlowButton
                 android:id="@+id/send_button"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@drawable/blue_button"
-                android:padding="20dp"
+                android:padding="15dp"
                 android:text="@string/create_post_send"
-                android:onClick="login"
                 android:textColor="@color/black"
                 android:textFontWeight="200"
-                android:textSize="15dp"
-                android:layout_weight="1"
-                app:buttonColor="@color/neon_blue"
-                app:glowColor="@color/neon_blue"
-                app:layout_constraintTop_toBottomOf="@id/passwordField" />
+                android:textSize="14dp"
+                android:layout_weight="0.8"
+                app:buttonColor="@color/green_neon"
+                app:glowColor="@color/green_neon" />
         </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/selected_images_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/buttons"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,6 +7,7 @@ import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,6 +17,7 @@ import org.json.JSONObject
 import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.concurrent.timer
 
 
 class HomeActivity : AppCompatActivity() {
@@ -28,6 +30,8 @@ class HomeActivity : AppCompatActivity() {
 
     var user: JSONObject? = null
     var userData: JSONObject? = null
+
+    var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -48,6 +52,8 @@ class HomeActivity : AppCompatActivity() {
         val homeTime = findViewById<TextView>(R.id.home_time)
         val weather = findViewById<View>(R.id.weather)
 
+        pb = findViewById(R.id.pb)
+
         weatherCity = findViewById(R.id.weather_city)
         weatherText = findViewById(R.id.weather_text)
         weatherImage = findViewById(R.id.weather_image)
@@ -67,12 +73,12 @@ class HomeActivity : AppCompatActivity() {
         }
 
         homeGreeting.text = util.getDayTime(filesDir)
-        val timer = object: CountDownTimer(1000000, 1000) {
+        val timer = object: CountDownTimer(1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 homeTime.text = util.getCurrentDate()
             }
             override fun onFinish() {
-                homeTime.setText(R.string.home_default_time)
+                this.start()
             }
         }
         timer.start()
@@ -95,6 +101,7 @@ class HomeActivity : AppCompatActivity() {
             publicNewsList?.visibility = View.VISIBLE
         }
 
+
         getNewsInBackground(newsArr, true)
         getNewsInBackground(publicNewsArr, false)
 
@@ -110,6 +117,7 @@ class HomeActivity : AppCompatActivity() {
                     getFriendsNews(news)
                     runOnUiThread {
                         newsList?.adapter?.notifyDataSetChanged()
+                        pb?.visibility = View.GONE
                     }
                 } else {
                     getPublicNews(news)

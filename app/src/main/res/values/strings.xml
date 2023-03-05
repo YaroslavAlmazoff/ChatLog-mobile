@@ -72,6 +72,7 @@
     <string name="send">Отправить</string>
     <string name="comment_hint">Ваш комментарий</string>
     <string name="no_comments">Здесь пока нет комментариев</string>
+    <string name="go_back">Назад</string>
 
 
     <string name="user_item_button">Переписка</string>
@@ -96,7 +97,7 @@
     <string name="update_profile_title">Обновление профиля</string>
     <string name="update_profile_add_avatar">Добавить аватар</string>
     <string name="update_profile_add_banner">Добавить баннер</string>
-    <string name="update_profile_button">Обновить профиль</string>
+    <string name="update_profile_button">Обновить</string>
 
     <string name="notification_check_profile">Посмотреть профиль</string>
     <string name="notification_reply">Принять</string>

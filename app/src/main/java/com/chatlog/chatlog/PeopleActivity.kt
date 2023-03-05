@@ -3,6 +3,8 @@ package com.chatlog.chatlog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +15,7 @@ import java.net.URL
 
 class PeopleActivity : AppCompatActivity() {
     var usersList: RecyclerView? = null
+    var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people)
@@ -30,6 +33,8 @@ class PeopleActivity : AppCompatActivity() {
         usersList = findViewById(R.id.users_list)
         var usersArray: ArrayList<User> = ArrayList()
 
+        pb = findViewById(R.id.pb)
+
         usersArray.add(User("ChatLog", "Admin", "28.02.2022", "Russia", "Alexeevka", "user.png"))
 
         getUsersInBackground(usersArray)
@@ -43,6 +48,7 @@ class PeopleActivity : AppCompatActivity() {
                 getUsers(users)
                 runOnUiThread {
                     usersList?.adapter?.notifyDataSetChanged()
+                    pb?.visibility = View.GONE
                 }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")

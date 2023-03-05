@@ -43,6 +43,7 @@
         <entry key="app/src/main/res/layout/news_item.xml" value="0.19623770842240273" />
         <entry key="app/src/main/res/layout/notification_item.xml" value="0.22488242838820008" />
         <entry key="app/src/main/res/layout/photo_item.xml" value="0.16545532278751604" />
+        <entry key="app/src/main/res/layout/selected_image_item.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/small_image.xml" value="0.19752030782385635" />
         <entry key="app/src/main/res/layout/user_item.xml" value="0.2586575459598119" />
       </map>

@@ -7,10 +7,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +30,8 @@ class UserActivity : AppCompatActivity() {
 
     var isOwner = false
     var userData: JSONObject? = null
+
+    var pb: ProgressBar? = null
 
     var isFriends = false
     var isRoomExists = false
@@ -67,8 +66,14 @@ class UserActivity : AppCompatActivity() {
     private fun initialize() {
         val util = Utils()
         val userId = intent.getStringExtra("id")
-
-        userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+        val userFile = File(filesDir, util.userFileName)
+        if(Utils().readUserFile(userFile) != "") {
+            userData = JSONObject(util.readUserFile(userFile))
+        } else {
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
+        pb = findViewById(R.id.pb)
         userName = findViewById(R.id.user_name)
         userDate = findViewById(R.id.user_date)
         userPlace = findViewById(R.id.user_place)
@@ -80,6 +85,12 @@ class UserActivity : AppCompatActivity() {
         writeMessageButton = findViewById(R.id.user_message_button)
         alreadyInFriends = findViewById(R.id.already_in_friends)
         removeFromFriends = findViewById(R.id.user_delete_friend)
+
+        val createButton = findViewById<Button>(R.id.user_create_button)
+        createButton.setOnClickListener {
+            val intent = Intent(this, CreatePostActivity::class.java)
+            startActivity(intent)
+        }
 
 
         val notificationIcon = findViewById<ImageView>(R.id.notification_icon)
@@ -166,6 +177,7 @@ class UserActivity : AppCompatActivity() {
                 getNotifications(id, notifications)
                 getPosts(posts, id)
                 runOnUiThread {
+                    pb?.visibility = View.GONE
                     postsList.adapter?.notifyDataSetChanged()
                     friendsList.adapter?.notifyDataSetChanged()
                 }

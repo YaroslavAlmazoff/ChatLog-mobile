@@ -262,6 +262,18 @@
                 android:layout_marginTop="80dp">
 
             </androidx.recyclerview.widget.RecyclerView>
+            <ProgressBar
+                android:id="@+id/pb"
+                app:layout_constraintTop_toBottomOf="@id/user_notifications"
+                android:layout_marginTop="100dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:max="100" />
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/user_posts"
                 android:layout_width="match_parent"

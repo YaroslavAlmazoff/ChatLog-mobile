@@ -5,10 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
@@ -22,6 +19,7 @@ class CommentsActivity : AppCompatActivity() {
     var commentField: EditText? = null
 
     var userData: JSONObject? = null
+    var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comments)
@@ -43,6 +41,8 @@ class CommentsActivity : AppCompatActivity() {
 
         val postId = intent.getStringExtra("id")
 
+        pb = findViewById(R.id.pb)
+
         commentsList = findViewById(R.id.comments_list)
         val goBackButton = findViewById<Button>(R.id.go_back)
         val sendButton = findViewById<Button>(R.id.send)
@@ -51,6 +51,7 @@ class CommentsActivity : AppCompatActivity() {
         var commentsArray: ArrayList<Comment> = ArrayList()
         commentsArray.add(Comment("useless", "useless", "useless", "user.png"))
         if (postId != null) {
+            pb?.visibility = View.VISIBLE
             getCommentsInBackground(commentsArray, postId)
             if(commentsArray.size == 0) {
                 commentsList?.visibility = View.GONE
@@ -88,6 +89,7 @@ class CommentsActivity : AppCompatActivity() {
                 getComments(comments, id)
                 runOnUiThread {
                     commentsList?.adapter?.notifyDataSetChanged()
+                    pb?.visibility = View.GONE
                 }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "Все плохо $e")

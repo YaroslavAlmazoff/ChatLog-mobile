@@ -30,6 +30,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
         <LinearLayout
+            android:id="@+id/buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -75,6 +76,17 @@
                 app:layout_constraintEnd_toEndOf="parent"/>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <ProgressBar
+        android:id="@+id/pb"
+        app:layout_constraintTop_toBottomOf="@id/comment_form"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:max="100" />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/comments_list"
         android:padding="10dp"
