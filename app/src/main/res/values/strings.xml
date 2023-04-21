@@ -116,4 +116,11 @@
     <string name="remove">✖</string>
     <string name="remove_from_friends">Удалить из друзей</string>
     <string name="removed_from_friends">Вы удалили пользователя из друзей</string>
+    <string name="write_message_hint">Напишите сообщение</string>
+
+    <string name="not_activated">Ваш профиль не активирован. На указанную почту должно прийти письмо с ссылкой на активацию.</string>
+    <string name="delete_profile">Удалить профиль вы можете удалить на сайте.</string>
+    <string name="delete_message">Удалить</string>
+    <string name="edit_message">Редактировать</string>
+
 </resources>

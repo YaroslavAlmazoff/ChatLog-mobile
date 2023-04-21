@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         if(util.readUserFile(File(filesDir, util.userFileName)).isNotEmpty()) {
             try {
                 if(JSONObject(user).getString("token") != null) {
-                    runHomeActivity()
+                    checkToken()
                 }
             } catch(e: JSONException) {
                 val intent = Intent(this, LoginActivity::class.java)
@@ -60,6 +60,43 @@ class MainActivity : AppCompatActivity() {
         anim.duration = 2000
         anim.start()
         Log.e("TAG", user!!)
+    }
+    private fun checkToken() {
+        Thread {
+            try {
+                Log.e("TAG", userData.toString())
+                val token = userData?.getString("token")
+                val url = URL(Constants().SITE_NAME + "verify")
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                var data: Int = connection.inputStream.read()
+                var result = ""
+                var byteArr = byteArrayOf()
+                while(data != -1) {
+                    result += data.toChar().toString()
+                    byteArr.plus(data.toByte())
+                    data = connection.inputStream.read()
+                }
+                Log.e("TAG", result)
+                if(!JSONObject(result).getBoolean("verified")) {
+                    Utils().clearUserData(filesDir)
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                } else {
+                    if(!JSONObject(result).getBoolean("isActivated")) {
+                        val intent = Intent(this, NotActivated::class.java)
+                        startActivity(intent)
+                    } else {
+                        runHomeActivity()
+                    }
+                }
+            } catch (e: InterruptedException) {
+                Log.e("TAG", "Не удалось выполнить проверку")
+            }
+        }.start()
     }
     fun runLoginActivity(view: View) {
         val intent = Intent(this, LoginActivity::class.java)

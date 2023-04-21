@@ -95,12 +95,6 @@ class CreatePostActivity : AppCompatActivity() {
             imagesList?.adapter?.notifyDataSetChanged()
             currentPhotoNumber++
             Log.e("TAG", currentPhotoNumber.toString())
-            for(i in 0 until selectedImagesArray?.count()!!) {
-                Log.e("TAG", selectedImagesArray!![i]?.uri)
-            }
-            for(i in 0 until photos?.count()!!) {
-                Log.e("TAG", photos!![i]?.name)
-            }
         } else {
             Log.e("TAG", "Error")
         }

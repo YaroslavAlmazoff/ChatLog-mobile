@@ -37,7 +37,7 @@ class NavigationActivity : AppCompatActivity() {
             startActivity(intent)
         }
         messenger.setOnClickListener {
-            val intent = Intent(this, MessengerActivity::class.java)
+            val intent = Intent(this, MessengerListActivity::class.java)
             startActivity(intent)
         }
         people.setOnClickListener {

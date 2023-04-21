@@ -41,7 +41,7 @@ class Navigation: Fragment() {
             activity?.startActivity(intent)
         }
         navMessenger.setOnClickListener {
-            val intent = Intent(activity, MessengerActivity::class.java)
+            val intent = Intent(activity, MessengerListActivity::class.java)
             activity?.startActivity(intent)
         }
         navOther.setOnClickListener {

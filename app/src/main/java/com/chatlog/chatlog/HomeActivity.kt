@@ -60,8 +60,6 @@ class HomeActivity : AppCompatActivity() {
         user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
-        checkToken()
-
         val unicode = 0x1F3E0
         weatherCity?.text = util.getEmojiByUnicode(unicode) + user?.getString("city").toString()
 
@@ -90,8 +88,6 @@ class HomeActivity : AppCompatActivity() {
 
         val friendsNewsSwitch = findViewById<TextView>(R.id.home_friends_news)
         val publicsNewsSwitch = findViewById<TextView>(R.id.home_publics_news)
-
-
         friendsNewsSwitch.setOnClickListener {
             publicNewsList?.visibility = View.GONE
             newsList?.visibility = View.VISIBLE
@@ -198,35 +194,5 @@ class HomeActivity : AppCompatActivity() {
             weatherText?.text = resultWeather
             Picasso.get().load("https://openweathermap.org/img/wn/${JSONObject(weatherData).getJSONArray("weather").getJSONObject(0).getString("icon")}@2x.png").into(weatherImage)
         }
-    }
-    private fun checkToken() {
-        Thread {
-            try {
-                Log.e("TAG", userData.toString())
-                val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "verify")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-                var data: Int = connection.inputStream.read()
-                var result = ""
-                var byteArr = byteArrayOf()
-                while(data != -1) {
-                    result += data.toChar().toString()
-                    byteArr.plus(data.toByte())
-                    data = connection.inputStream.read()
-                }
-                Log.e("TAG", result)
-                if(!JSONObject(result).getBoolean("verified")) {
-                    Utils().clearUserData(filesDir)
-                    val intent = Intent(this, LoginActivity::class.java)
-                    startActivity(intent)
-                }
-            } catch (e: InterruptedException) {
-                Log.e("TAG", "Не удалось выполнить проверку")
-            }
-        }.start()
     }
 }

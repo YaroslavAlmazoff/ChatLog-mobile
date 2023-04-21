@@ -29,4 +29,13 @@ interface ChatLogApi {
         @Part file: List<MultipartBody.Part?>,
         @Header("Authorization") token: String,
     ): String
+
+    @Multipart
+    @POST("new-messages")
+    suspend fun sendMessage(
+        @Part("title") title: RequestBody,
+        @Part("date") date: RequestBody,
+        @Part file: List<MultipartBody.Part?>,
+        @Header("Authorization") token: String,
+    ): String
 }
