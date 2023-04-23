@@ -31,11 +31,14 @@ interface ChatLogApi {
     ): String
 
     @Multipart
-    @POST("new-messages")
+    @POST("new-messages/{id}")
     suspend fun sendMessage(
-        @Part("title") title: RequestBody,
-        @Part("date") date: RequestBody,
-        @Part file: List<MultipartBody.Part?>,
+        @Path("id") id: String,
+        @Part("message") message: RequestBody,
+        @Part("isFile") isFile: RequestBody,
+        @Part file: MultipartBody.Part?,
+        @Part videoFile: MultipartBody.Part?,
+        @Part("audio") audioFile: RequestBody,
         @Header("Authorization") token: String,
     ): String
 }

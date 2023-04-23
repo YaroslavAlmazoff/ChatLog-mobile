@@ -27,7 +27,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                       private var editing: Boolean,
                       private var currentMessageId: String,
                       private var currentMessageText: String,
-                      private var sendButton: com.sanojpunchihewa.glowbutton.GlowButton,
+                      private var sendButton: ImageView,
                       private var editButton: com.sanojpunchihewa.glowbutton.GlowButton) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -48,6 +48,16 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         }
         if(message.user == userData.getJSONObject("user").getString("_id")) {
             holder.root?.background = context.getDrawable(R.drawable.my_message)
+        }
+        if(message.imageUrl != "") {
+            Picasso.get().load(Constants().SITE_NAME_FILES + "/messagefotos/${message.imageUrl}").into(holder.image)
+            holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        if(message.uri != null) {
+            holder.image?.setImageURI(message.uri)
+        }
+        if(message.message == "") {
+            holder.text?.visibility = View.GONE
         }
         holder.prefs?.setOnClickListener {
             holder.editMessage?.visibility = View.VISIBLE
@@ -94,6 +104,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         var deleteMessage: TextView? = null
         var root: View? = null
         var prefs: ImageView? = null
+        var image: ImageView? = null
 
         init {
             name = itemView.findViewById(R.id.message_name)
@@ -103,6 +114,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             editMessage = itemView.findViewById(R.id.edit_message)
             deleteMessage = itemView.findViewById(R.id.delete_message)
             prefs = itemView.findViewById(R.id.prefs)
+            image = itemView.findViewById(R.id.message_img)
             root = itemView.findViewById(R.id.message)
         }
     }

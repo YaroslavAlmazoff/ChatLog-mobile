@@ -122,5 +122,6 @@
     <string name="delete_profile">Удалить профиль вы можете удалить на сайте.</string>
     <string name="delete_message">Удалить</string>
     <string name="edit_message">Редактировать</string>
+    <string name="cancel">Отмена</string>
 
 </resources>

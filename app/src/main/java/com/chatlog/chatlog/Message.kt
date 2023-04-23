@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.net.Uri
 import org.json.JSONArray
 
 data class Message(var message: String,
@@ -14,5 +15,6 @@ data class Message(var message: String,
                    var imageUrl: String,
                    var videoUrl: String,
                    var audioUrl: String,
-                   var readThisMessage: JSONArray
+                   var readThisMessage: JSONArray,
+                   var uri: Uri?
 )
