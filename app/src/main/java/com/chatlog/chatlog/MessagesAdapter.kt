@@ -52,9 +52,13 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         if(message.imageUrl != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/messagefotos/${message.imageUrl}").into(holder.image)
             holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-        if(message.uri != null) {
-            holder.image?.setImageURI(message.uri)
+        } else {
+            if(message.uri != null) {
+                holder.image?.setImageURI(message.uri)
+                holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+            } else {
+                holder.image?.visibility = View.GONE
+            }
         }
         if(message.message == "") {
             holder.text?.visibility = View.GONE

@@ -73,6 +73,8 @@ class MessengerActivity : AppCompatActivity() {
     var imageUri: Uri? = null
     var videoUri: Uri? = null
 
+    var uploading: Boolean = false
+
     override fun onStop() {
         super.onStop()
         stopEventSource()
@@ -158,6 +160,7 @@ class MessengerActivity : AppCompatActivity() {
                 }
                 imageFile = File(filesDir, "file")
                 uploadScreen?.visibility = View.GONE
+                uploading = true
             }
         } else if (requestCode == GALERY_ADD_VIDEO && resultCode == RESULT_OK) {
             //image?.setImageURI(data?.data)
@@ -220,7 +223,9 @@ class MessengerActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getJSONArray("readedThisMessage"), null
             ))
         }
-        if(messagesArray?.isEmpty()!! || imageFile != null || videoFile != null) {
+        Log.e("TAG", messagesArray?.isEmpty()!!.toString())
+        Log.e("TAG", uploading.toString())
+        if(imageUri != null) {
             messagesArray?.add(Message(
                 messageField?.text?.toString()!!,
                 userData?.getJSONObject("user")?.getString("name")!!,
@@ -229,13 +234,12 @@ class MessengerActivity : AppCompatActivity() {
                 userData?.getJSONObject("user")?.getString("_id")!!,
                 intent.getStringExtra("id")!!,
                 true, false, "", "", "", "",
-                JSONArray(), null
+                JSONArray(), imageUri
             ))
+            imageUri = null
+            videoUri = null
             runOnUiThread { messagesList?.adapter?.notifyDataSetChanged() }
-
         }
-        imageFile = null
-        videoFile = null
         runOnUiThread { messageField?.setText("") }
     }
     fun getUser() {
@@ -257,7 +261,7 @@ class MessengerActivity : AppCompatActivity() {
                 sendMessage2(adapter)
                 runOnUiThread {
                     images?.visibility = View.GONE
-                    if(messagesArray?.isEmpty()!! || imageFile != null || videoFile != null) {
+                    if(imageUri != null) {
                         getMessagesInBackground(messagesArray!!)
                     }
                 }
@@ -316,6 +320,8 @@ class MessengerActivity : AppCompatActivity() {
         } catch(e: IllegalStateException) {
             Log.e("TAG", "Ошибка но ничего страшного")
         }
+        imageFile = null
+        videoFile = null
     }
     private var sseHandler: SSEHandler? = SSEHandler()
     private var eventSource: EventSource? = null
