@@ -50,6 +50,10 @@ class Utils {
         val sdf = SimpleDateFormat("HH:mm:ss")
         return sdf.format(Date())
     }
+    fun getCurrentDateAndTime():String{
+        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
+        return sdf.format(Date())
+    }
     fun getDayTime(filesDir: File): String {
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)

@@ -35,6 +35,7 @@ interface ChatLogApi {
     suspend fun sendMessage(
         @Path("id") id: String,
         @Part("message") message: RequestBody,
+        @Part("date") date: RequestBody,
         @Part("isFile") isFile: RequestBody,
         @Part file: MultipartBody.Part?,
         @Part videoFile: MultipartBody.Part?,

@@ -55,9 +55,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         } else {
             if(message.uri != null) {
                 holder.image?.setImageURI(message.uri)
-                holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
-            } else {
-                holder.image?.visibility = View.GONE
+                holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
             }
         }
         if(message.message == "") {
