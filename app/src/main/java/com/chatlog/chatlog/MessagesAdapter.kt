@@ -2,15 +2,15 @@ package com.chatlog.chatlog
 
 import android.R.attr.data
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -56,6 +56,28 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             if(message.uri != null) {
                 holder.image?.setImageURI(message.uri)
                 holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
+            }
+        }
+        if(message.videoUrl != "") {
+            holder.video?.visibility = View.VISIBLE
+            holder.video?.setOnClickListener {
+                val intent = Intent(it.context, MessageVideoActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.putExtra("videoUrl", message.videoUrl)
+                intent.putExtra("isUri", false)
+                context.startActivity(intent)
+            }
+        } else {
+            if(message.videoUri != null) {
+                Log.e("TAG", message.videoUri?.toString()!!)
+                holder.video?.visibility = View.VISIBLE
+                holder.video?.setOnClickListener {
+                    val intent = Intent(it.context, MessageVideoActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    intent.putExtra("videoUri", message.videoUri.toString())
+                    intent.putExtra("isUri", true)
+                    context.startActivity(intent)
+                }
             }
         }
         if(message.message == "") {
@@ -107,6 +129,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         var root: View? = null
         var prefs: ImageView? = null
         var image: ImageView? = null
+        var video: View? = null
 
         init {
             name = itemView.findViewById(R.id.message_name)
@@ -117,6 +140,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             deleteMessage = itemView.findViewById(R.id.delete_message)
             prefs = itemView.findViewById(R.id.prefs)
             image = itemView.findViewById(R.id.message_img)
+            video = itemView.findViewById(R.id.video)
             root = itemView.findViewById(R.id.message)
         }
     }

@@ -7,10 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -65,11 +62,14 @@ class MessengerActivity : AppCompatActivity() {
     val GALERY_ADD_IMAGE = 1
     val GALERY_ADD_VIDEO = 2
     var image: ImageView? = null
-    var video: ImageView? = null
+    var video: VideoView? = null
     var imageFile: File? = null
     var videoFile: File? = null
 
     var imageUri: Uri? = null
+    var videoUri: Uri? = null
+
+    var adapter: MessagesAdapter? = null
 
     override fun onStop() {
         super.onStop()
@@ -120,9 +120,9 @@ class MessengerActivity : AppCompatActivity() {
 
         pb = findViewById(R.id.pb)
         messagesArray = ArrayList()
-        val adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!)
+        adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!)
         sendImg?.setOnClickListener {
-            sendMessageInBackground(adapter)
+            sendMessageInBackground()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
         }
@@ -158,21 +158,31 @@ class MessengerActivity : AppCompatActivity() {
                 uploadScreen?.visibility = View.GONE
             }
         } else if (requestCode == GALERY_ADD_VIDEO && resultCode == RESULT_OK) {
-            //image?.setImageURI(data?.data)
-            val inputStream = contentResolver.openInputStream(data?.data!!)
-            var outputStream: OutputStream? = null
-            try {
-                outputStream = FileOutputStream(File(filesDir, "video"))
-                var byteRead = inputStream?.read()
-                while(byteRead  != -1) {
-                    outputStream.write(byteRead!!)
-                    byteRead = inputStream?.read()
+            if(data?.data != null) {
+                images?.visibility = View.VISIBLE
+                video?.setVideoURI(data?.data)
+                val mediaController = MediaController(this)
+                mediaController.setAnchorView(video)
+                mediaController.setMediaPlayer(video)
+                video?.setMediaController(mediaController)
+                video?.start()
+                videoUri = data?.data
+                val inputStream = contentResolver.openInputStream(data?.data!!)
+                var outputStream: OutputStream? = null
+                try {
+                    outputStream = FileOutputStream(File(filesDir, "video"))
+                    var byteRead = inputStream?.read()
+                    while(byteRead  != -1) {
+                        outputStream.write(byteRead!!)
+                        byteRead = inputStream?.read()
+                    }
+                } finally {
+                    inputStream?.close()
+                    outputStream?.close()
                 }
-            } finally {
-                inputStream?.close()
-                outputStream?.close()
+                videoFile = File(filesDir, "video")
+                uploadScreen?.visibility = View.GONE
             }
-            imageFile = File(filesDir, "video")
         } else {
             Log.e("TAG", "Error")
         }
@@ -215,7 +225,7 @@ class MessengerActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getString("videoUrl"),
                 usersArray.getJSONObject(i).getString("audioUrl"),
                 usersArray.getJSONObject(i).getJSONArray("readedThisMessage"),
-                null
+                null, null
             ))
         }
         if(imageUri != null) {
@@ -233,10 +243,31 @@ class MessengerActivity : AppCompatActivity() {
                 "",
                 "",
                 JSONArray(),
-                imageUri
+                imageUri,
+                null
             ))
             imageUri = null
             imageFile = null
+        } else if(videoUri != null) {
+            messages.add(Message(
+                messageField?.text?.toString()!!,
+                userData?.getJSONObject("user")?.getString("name")!!,
+                userData?.getJSONObject("user")?.getString("avatarUrl")!!,
+                "Сейчас",
+                userData?.getJSONObject("user")?.getString("_id")!!,
+                intent.getStringExtra("id")!!,
+                true,
+                false,
+                "",
+                "",
+                "",
+                "",
+                JSONArray(),
+                null,
+                videoUri
+            ))
+            videoUri = null
+            videoFile = null
         }
     }
     fun getUser() {
@@ -252,49 +283,22 @@ class MessengerActivity : AppCompatActivity() {
     fun read() {
         URL(Constants().SITE_NAME + "read/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
     }
-    fun sendMessageInBackground(adapter: MessagesAdapter) {
+    fun sendMessageInBackground() {
         Thread {
             try {
-                sendMessage2(adapter)
+                sendMessage2()
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
             }
         }.start()
     }
-//    fun sendMessage(adapter: MessagesAdapter) {
-//        runOnUiThread {
-//            adapter.clear()
-//        }
-//        val token = userData?.getString("token")
-//        val url = URL(Constants().SITE_NAME + "new-messages/${intent.getStringExtra("id")!!}")
-//        val connection = url.openConnection() as HttpsURLConnection
-//        connection.requestMethod = "POST"
-//        connection.doOutput = true
-//        connection.setRequestProperty("Content-Type", "application/json")
-//        connection.setRequestProperty("Accept-Charset", "utf-8")
-//        connection.setRequestProperty("Authorization", "Bearer $token")
-//        connection.setRequestProperty("Range", "bytes=100-")
-//        val json = "{" +
-//                "\"message\": \"${messageField?.text}\"," +
-//                "\"isFile\": false" +
-//                "}"
-//        connection.outputStream.write(json.toByteArray())
-//        var data: Int = connection.inputStream.read()
-//        var result = ""
-//        var byteArr = byteArrayOf()
-//        while (data != -1) {
-//            result += data.toChar().toString()
-//            byteArr.plus(data.toByte())
-//            data = connection.inputStream.read()
-//        }
-//        messageField?.setText("")
-//    }
-    private fun sendMessage2(adapter: MessagesAdapter) {
-        if(imageFile != null) {
+
+    private fun sendMessage2() {
+        if(imageFile != null || videoFile != null) {
             startEventSource()
         }
         runOnUiThread {
-            adapter.clear()
+            adapter?.clear()
         }
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -345,7 +349,7 @@ class MessengerActivity : AppCompatActivity() {
         } catch(e: IllegalStateException) {
             Log.e("TAG", "Ошибка но ничего страшного")
         } finally {
-            if(imageFile != null) {
+            if(imageFile != null || videoFile != null) {
                 getMessagesInBackground(messagesArray!!)
                 startEventSource()
             }
@@ -376,6 +380,9 @@ class MessengerActivity : AppCompatActivity() {
         }
 
         override fun onMessage(event: String, message: MessageEvent) {
+            runOnUiThread {
+                adapter?.clear()
+            }
             Log.e("TAG", "message")
             Log.e("TAG", message.data)
             val messages = JSONArray(message.data)
@@ -394,14 +401,16 @@ class MessengerActivity : AppCompatActivity() {
                     messages.getJSONObject(i).getString("videoUrl"),
                     messages.getJSONObject(i).getString("audioUrl"),
                     messages.getJSONObject(i).getJSONArray("readedThisMessage"),
-                    null
+                    null, null
                 ))
             }
             runOnUiThread {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
                 messageField?.setText("")
-                messagesArray?.count()?.minus(1)?.let { messagesList?.smoothScrollToPosition(it) }
+                if(messagesArray?.isNotEmpty()!!) {
+                    messagesArray?.count()?.minus(1)?.let { messagesList?.smoothScrollToPosition(it) }
+                }
                 messagesList?.adapter?.notifyDataSetChanged()
             }
             if(messagesArray!![messagesArray?.count()?.minus(1)!!].user != null) {
