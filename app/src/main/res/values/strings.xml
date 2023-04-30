@@ -123,5 +123,6 @@
     <string name="delete_message">Удалить</string>
     <string name="edit_message">Редактировать</string>
     <string name="cancel">Отмена</string>
+    <string name="voice">Голосовое сообщение</string>
 
 </resources>

@@ -4,6 +4,8 @@ import android.R.attr.data
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -80,6 +82,34 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                 }
             }
         }
+        if(message.audioUrl != "") {
+            var mediaPlayer: MediaPlayer? = null
+            holder.audio?.visibility = View.VISIBLE
+            holder.playAudio?.setOnClickListener {
+                holder.playAudio?.visibility = View.GONE
+                holder.stopAudio?.visibility = View.VISIBLE
+                holder.audioPlaying?.visibility = View.VISIBLE
+                mediaPlayer = MediaPlayer()
+                mediaPlayer?.setDataSource(Constants().SITE_NAME_FILES + "/messageaudios/${message.audioUrl}")
+                mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                mediaPlayer?.prepare()
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener {
+                    mediaPlayer?.start()
+                }
+            }
+            holder.stopAudio?.setOnClickListener {
+                holder.stopAudio?.visibility = View.GONE
+                holder.playAudio?.visibility = View.VISIBLE
+                holder.audioPlaying?.visibility = View.GONE
+                Log.e("TAG", "audio stopped")
+                if (mediaPlayer?.isPlaying == true) {
+                    mediaPlayer?.stop()
+                    mediaPlayer?.reset()
+                    mediaPlayer?.release()
+                }
+            }
+        }
         if(message.message == "") {
             holder.text?.visibility = View.GONE
         }
@@ -130,6 +160,10 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         var prefs: ImageView? = null
         var image: ImageView? = null
         var video: View? = null
+        var audio: View? = null
+        var playAudio: ImageView? = null
+        var stopAudio: ImageView? = null
+        var audioPlaying: ImageView? = null
 
         init {
             name = itemView.findViewById(R.id.message_name)
@@ -142,6 +176,10 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             image = itemView.findViewById(R.id.message_img)
             video = itemView.findViewById(R.id.video)
             root = itemView.findViewById(R.id.message)
+            audio = itemView.findViewById(R.id.audio)
+            playAudio = itemView.findViewById(R.id.play_audio)
+            stopAudio = itemView.findViewById(R.id.stop_audio)
+            audioPlaying = itemView.findViewById(R.id.audio_playing)
         }
     }
     fun deleteMessageInBackground(id: String, position: Int) {

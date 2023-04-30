@@ -46,4 +46,5 @@ dependencies {
     implementation 'com.github.SanojPunchihewa:GlowButton:1.0.1'
     implementation 'com.squareup.picasso:picasso:2.8'
     implementation 'com.tylerjroach:eventsource:1.2.11'
+    implementation "com.airbnb.android:lottie:6.0.0"
 }
