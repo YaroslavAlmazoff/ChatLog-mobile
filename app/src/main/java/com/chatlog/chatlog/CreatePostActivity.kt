@@ -1,12 +1,21 @@
 package com.chatlog.chatlog
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
-import android.widget.Button
-import android.widget.TextView
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +31,7 @@ import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Part
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -38,10 +48,26 @@ class CreatePostActivity : AppCompatActivity() {
 
     var postText: TextView? = null
 
+    var uploadScreen: View? = null
+    var pickImagesCancel: TextView? = null
+    lateinit var rs: Cursor
+    var greed: GridView? = null
+    var pickImages: View? = null
+    var imageFile: File? = null
+
     private val GALERY_ADD_PHOTO = 1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_post)
+
+        pickImagesCancel = findViewById(R.id.pick_images_cancel)
+        greed = findViewById(R.id.greed)
+        pickImages = findViewById(R.id.pick_images)
+        pickImagesCancel?.setOnClickListener {
+            greed?.adapter = null
+            pickImages?.visibility = View.GONE
+            uploadScreen?.visibility = View.GONE
+        }
 
         photos = ArrayList()
 
@@ -68,37 +94,40 @@ class CreatePostActivity : AppCompatActivity() {
             intent.putExtra("id", userData?.getJSONObject("user")?.getString("_id"))
             startActivity(intent)
         }
+//        findViewById<Button>(R.id.upload_image_button).setOnClickListener {
+//            val intent = Intent(Intent.ACTION_PICK)
+//            intent.type = "image/*"
+//            startActivityForResult(intent, GALERY_ADD_PHOTO)
+//        }
         findViewById<Button>(R.id.upload_image_button).setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, GALERY_ADD_PHOTO)
+            uploadImage()
         }
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GALERY_ADD_PHOTO && resultCode == RESULT_OK) {
-            selectedImagesArray?.add(SelectedImage(data?.data?.toString()!!))
-            val inputStream = contentResolver.openInputStream(data?.data!!)
-            var outputStream: OutputStream? = null
-            try {
-                outputStream = FileOutputStream(File(filesDir, "photo$currentPhotoNumber"))
-                var byteRead = inputStream?.read()
-                while(byteRead  != -1) {
-                    outputStream.write(byteRead!!)
-                    byteRead = inputStream?.read()
-                }
-            } finally {
-                inputStream?.close()
-                outputStream?.close()
-            }
-            photos?.add(File(filesDir, "photo$currentPhotoNumber"))
-            imagesList?.adapter?.notifyDataSetChanged()
-            currentPhotoNumber++
-            Log.e("TAG", currentPhotoNumber.toString())
-        } else {
-            Log.e("TAG", "Error")
-        }
-    }
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (requestCode == GALERY_ADD_PHOTO && resultCode == RESULT_OK) {
+//            selectedImagesArray?.add(SelectedImage(data?.data?.toString()!!))
+//            val inputStream = contentResolver.openInputStream(data?.data!!)
+//            var outputStream: OutputStream? = null
+//            try {
+//                outputStream = FileOutputStream(File(filesDir, "photo$currentPhotoNumber"))
+//                var byteRead = inputStream?.read()
+//                while(byteRead  != -1) {
+//                    outputStream.write(byteRead!!)
+//                    byteRead = inputStream?.read()
+//                }
+//            } finally {
+//                inputStream?.close()
+//                outputStream?.close()
+//            }
+//            photos?.add(File(filesDir, "photo$currentPhotoNumber"))
+//            imagesList?.adapter?.notifyDataSetChanged()
+//            currentPhotoNumber++
+//            Log.e("TAG", currentPhotoNumber.toString())
+//        } else {
+//            Log.e("TAG", "Error")
+//        }
+//    }
     private fun sendInBackground() {
         Thread {
             try {
@@ -113,6 +142,43 @@ class CreatePostActivity : AppCompatActivity() {
         updateProfile(token!!)
         runUserActivity()
     }
+
+
+    private fun uploadImage() {
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
+        } else {
+            listFiles()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.e("TAG", requestCode.toString())
+        when (requestCode) {
+            101 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    listFiles()
+                } else {
+                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+        }
+    }
+
+    private fun listFiles() {
+        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
+        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+        pickImages?.visibility = View.VISIBLE
+        greed?.adapter = ImagesAdapter(applicationContext)
+    }
+
+
+
+
+
     private fun updateProfile(token: String) {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -158,5 +224,57 @@ class CreatePostActivity : AppCompatActivity() {
         val intent = Intent(this, UserActivity::class.java)
         intent.putExtra("id", userData?.getJSONObject("user")?.getString("_id"))
         startActivity(intent)
+    }
+
+
+    inner class ImagesAdapter : BaseAdapter {
+        var context: Context
+        constructor(context: Context) {
+            this.context = context
+        }
+        override fun getCount(): Int {
+            return rs.count
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            var iv = ImageView(context)
+            rs.moveToPosition(position)
+            var path = rs.getString(0)
+            var bitmap = BitmapFactory.decodeFile(path)
+            iv.setImageBitmap(bitmap)
+            iv.layoutParams = AbsListView.LayoutParams(300, 300)
+            iv.setOnClickListener {
+                pickImagesCancel?.text = "Загрузка изображения..."
+                Log.e("TAG", "Вы нажали на картинку $path")
+                val f = File(filesDir, "photo$currentPhotoNumber");
+                f.createNewFile();
+                val bitmap = bitmap;
+                val bos = ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                val bitmapData = bos.toByteArray();
+                val fos = FileOutputStream(f);
+                fos.write(bitmapData);
+                fos.flush();
+                fos.close();
+                imageFile = f
+                pickImages?.visibility = View.GONE
+                uploadScreen?.visibility = View.GONE
+                selectedImagesArray?.add(SelectedImage(Uri.fromFile(f)))
+                photos?.add(File(filesDir, "photo$currentPhotoNumber"))
+                imagesList?.adapter?.notifyDataSetChanged()
+                currentPhotoNumber++
+                pickImagesCancel?.text = "Отмена"
+                greed?.adapter = null
+            }
+            return iv
+        }
     }
 }

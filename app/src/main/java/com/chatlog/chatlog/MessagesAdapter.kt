@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
 import java.net.URL
@@ -30,7 +31,8 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                       private var currentMessageId: String,
                       private var currentMessageText: String,
                       private var sendButton: ImageView,
-                      private var editButton: com.sanojpunchihewa.glowbutton.GlowButton) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>() {
+                      private var editButton: com.sanojpunchihewa.glowbutton.GlowButton) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IFilter {
+    private var filteredList = ArrayList<Message>(messages)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.message, parent, false)
@@ -38,7 +40,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val message = messages[position]
+        val message = filteredList[position]
         val color = Constants().neonColors[(Math.random()*6).roundToInt()]
         holder.name?.text = message.name
         holder.text?.text = message.message
@@ -61,6 +63,10 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             }
         }
         if(message.videoUrl != "") {
+            val uri = Uri.parse(Constants().SITE_NAME_FILES + "/messagevideos/${message.videoUrl}")
+            Glide.with(context)
+                .load(uri)
+                .into(holder.thumbnail!!)
             holder.video?.visibility = View.VISIBLE
             holder.video?.setOnClickListener {
                 val intent = Intent(it.context, MessageVideoActivity::class.java)
@@ -109,15 +115,49 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                     mediaPlayer?.release()
                 }
             }
+        } else {
+            if(message.audioUri != null) {
+                var mediaPlayer: MediaPlayer? = null
+                holder.audio?.visibility = View.VISIBLE
+                holder.playAudio?.setOnClickListener {
+                    holder.playAudio?.visibility = View.GONE
+                    holder.stopAudio?.visibility = View.VISIBLE
+                    holder.audioPlaying?.visibility = View.VISIBLE
+                    mediaPlayer = MediaPlayer()
+                    mediaPlayer?.setDataSource(message.audioUri?.toString())
+                    mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                    mediaPlayer?.prepare()
+                    mediaPlayer?.start()
+                    mediaPlayer?.setOnCompletionListener {
+                        mediaPlayer?.start()
+                    }
+                }
+                holder.stopAudio?.setOnClickListener {
+                    holder.stopAudio?.visibility = View.GONE
+                    holder.playAudio?.visibility = View.VISIBLE
+                    holder.audioPlaying?.visibility = View.GONE
+                    Log.e("TAG", "audio stopped")
+                    if (mediaPlayer?.isPlaying == true) {
+                        mediaPlayer?.stop()
+                        mediaPlayer?.reset()
+                        mediaPlayer?.release()
+                    }
+                }
+            }
         }
         if(message.message == "") {
             holder.text?.visibility = View.GONE
         }
-        holder.prefs?.setOnClickListener {
-            holder.editMessage?.visibility = View.VISIBLE
-            holder.deleteMessage?.visibility = View.VISIBLE
-            currentMessageId = message.id
-            currentMessageText = message.message
+        if(message.user == userData.getJSONObject("user").getString("_id")) {
+            holder?.prefs?.visibility = View.VISIBLE
+            holder.prefs?.setOnClickListener {
+                holder.editMessage?.visibility = View.VISIBLE
+                holder.deleteMessage?.visibility = View.VISIBLE
+                currentMessageId = message.id
+                currentMessageText = message.message
+            }
+        } else {
+            holder?.prefs?.visibility = View.GONE
         }
         holder.editMessage?.setOnClickListener {
             sendButton.visibility = View.GONE
@@ -133,7 +173,6 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             holder.deleteMessage?.visibility = View.GONE
         }
         editButton.setOnClickListener {
-            editMessageInBackground(message.id)
             holder.text?.text = messageField.text.toString()
             val imm = context.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
@@ -141,12 +180,38 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             editButton.visibility = View.GONE
             holder.editMessage?.visibility = View.GONE
             holder.deleteMessage?.visibility = View.GONE
+            messages[position].message = messageField.text.toString()
+            filter("")
+            editMessageInBackground(message.id)
+        }
+        if(message.videoUrl == "") {
+            holder?.video?.visibility = View.GONE
+        }
+        if(message.audioUrl == "") {
+            holder?.audio?.visibility = View.GONE
+        }
+        if(message.imageUrl == "") {
+            holder?.image?.visibility = View.GONE
         }
     }
 
 
     override fun getItemCount(): Int {
-        return messages.size
+        return filteredList.size
+    }
+
+    override fun filter(query: String) {
+        filteredList.clear()
+        if (query.isEmpty()) {
+            filteredList.addAll(messages)
+        } else {
+            for (item in messages) {
+                if (item.message.contains(query, ignoreCase = true)) {
+                    filteredList.add(item)
+                }
+            }
+        }
+        notifyDataSetChanged()
     }
 
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -164,6 +229,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         var playAudio: ImageView? = null
         var stopAudio: ImageView? = null
         var audioPlaying: ImageView? = null
+        var thumbnail: ImageView? = null
 
         init {
             name = itemView.findViewById(R.id.message_name)
@@ -180,9 +246,14 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             playAudio = itemView.findViewById(R.id.play_audio)
             stopAudio = itemView.findViewById(R.id.stop_audio)
             audioPlaying = itemView.findViewById(R.id.audio_playing)
+            thumbnail = itemView.findViewById(R.id.thumbnail)
         }
     }
     fun deleteMessageInBackground(id: String, position: Int) {
+        messages.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position, messages.size)
+        filter("")
         Thread {
             try {
                 deleteMessage(id)
@@ -190,17 +261,14 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                 Log.e("TAG", e.message.toString())
             }
         }.start()
-        messages.removeAt(position)
-        notifyItemRemoved(position)
-        notifyItemRangeChanged(position, messages.size)
     }
     fun deleteMessage(id: String) {
         URL(Constants().SITE_NAME + "deletemessage/${id}").readText(Charsets.UTF_8)
         currentMessageId = ""
         currentMessageText = ""
-
     }
     fun editMessageInBackground(id: String) {
+        filter("")
         Thread {
             try {
                 editMessage(id)

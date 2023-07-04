@@ -5,9 +5,9 @@
     <color name="neon_blue">#40A4FF</color>
     <color name="gradient_start_color">#003742</color>
     <color name="gradient_end_color">#0f0f28</color>
-    <color name="transparent_dark">#4D000000</color>
-    <color name="transparent_dark_ultra">#80000000</color>
-    <color name="transparent_light">#B2FFFFFF</color>
+    <color name="transparent_dark">#63000000</color>
+    <color name="transparent_dark_ultra">#9C000000</color>
+    <color name="transparent_light">#99FFFFFF</color>
     <color name="transparent">#80000000</color>
     <color name="light_neon_blue">#007DEF</color>
 
@@ -27,4 +27,6 @@
     <color name="g_dark_violet">#260021</color>
     <color name="g_dark_blue">#0C013B</color>
     <color name="g_brown">#382C29</color>
+    <color name="message">#8D000000</color>
+    <color name="my_message">#B7000000</color>
 </resources>

@@ -17,11 +17,8 @@ import com.squareup.picasso.Picasso
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ChatRoomsAdapter(private val rooms: ArrayList<ChatRoom>, val context: Context) : RecyclerView.Adapter<ChatRoomsAdapter.ViewHolder>(), Filterable {
-    var filteredRooms = ArrayList<ChatRoom>()
-    init {
-        filteredRooms = rooms
-    }
+class ChatRoomsAdapter(private val rooms: ArrayList<ChatRoom>, val context: Context) : RecyclerView.Adapter<ChatRoomsAdapter.ViewHolder>(), IFilter {
+    private var filteredList = ArrayList<ChatRoom>(rooms)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -45,11 +42,33 @@ class ChatRoomsAdapter(private val rooms: ArrayList<ChatRoom>, val context: Cont
         } else {
             holder.lastMessage?.text = room.lastMessage
         }
+        holder.root?.setOnClickListener {
+            val intent = Intent(it.context, ChatMessengerActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.putExtra("id", room.id)
+            Log.e("TAG", "id")
+            Log.e("TAG", room.id)
+            context.startActivity(intent)
+        }
     }
 
 
     override fun getItemCount(): Int {
-        return rooms.size
+        return filteredList.size
+    }
+
+    override fun filter(query: String) {
+        filteredList.clear()
+        if (query.isEmpty()) {
+            filteredList.addAll(rooms)
+        } else {
+            for (item in rooms) {
+                if (item.name.contains(query, ignoreCase = true)) {
+                    filteredList.add(item)
+                }
+            }
+        }
+        notifyDataSetChanged()
     }
 
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -57,40 +76,15 @@ class ChatRoomsAdapter(private val rooms: ArrayList<ChatRoom>, val context: Cont
         var avatar: ImageView? = null
         var lastMessage: TextView? = null
         var newMessagesExists: TextView? = null
+        var root: View? = null
 
         init {
             name = itemView.findViewById(R.id.room_item_name)
             avatar = itemView.findViewById(R.id.room_item_avatar)
             lastMessage = itemView.findViewById(R.id.room_item_message)
             newMessagesExists = itemView.findViewById(R.id.room_item_new)
+            root = itemView
         }
     }
-    override fun getFilter(): Filter {
-        return object : Filter() {
-            override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val charSearch = constraint.toString()
-                if (charSearch.isEmpty()) {
-                    filteredRooms = rooms
-                } else {
-                    val resultList = ArrayList<ChatRoom>()
-                    for (row in rooms) {
-                        if (row.name.contains(charSearch.lowercase(Locale.ROOT))) {
-                            resultList.add(row)
-                        }
-                    }
-                    filteredRooms = resultList
-                }
-                val filterResults = FilterResults()
-                filterResults.values = filteredRooms
-                return filterResults
-            }
 
-            @Suppress("UNCHECKED_CAST")
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                filteredRooms = results?.values as ArrayList<ChatRoom>
-                notifyDataSetChanged()
-            }
-
-        }
-    }
 }

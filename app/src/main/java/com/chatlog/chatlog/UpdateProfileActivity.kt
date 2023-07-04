@@ -1,16 +1,24 @@
 package com.chatlog.chatlog
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.view.ViewGroup
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +30,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -56,10 +65,28 @@ class UpdateProfileActivity : AppCompatActivity() {
     var avatarUri: String? = null
     var bannerUri: String? = null
 
+    var uploadScreen: View? = null
+    var pickImagesCancel: TextView? = null
+    lateinit var rs: Cursor
+    var greed: GridView? = null
+    var pickImages: View? = null
+    var imageFile: File? = null
+
+    var currentMode: String = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_update_profile)
+
+        pickImagesCancel = findViewById(R.id.pick_images_cancel)
+        greed = findViewById(R.id.greed)
+        pickImages = findViewById(R.id.pick_images)
+        pickImagesCancel?.setOnClickListener {
+            greed?.adapter = null
+            pickImages?.visibility = View.GONE
+            uploadScreen?.visibility = View.GONE
+        }
 
         nameField = findViewById(R.id.name_field)
         surnameField = findViewById(R.id.surname_field)
@@ -90,17 +117,25 @@ class UpdateProfileActivity : AppCompatActivity() {
 
         val imagesLayout = findViewById<View>(R.id.update_profile_images)
 
+//        addAvatar.setOnClickListener {
+//            imagesLayout.visibility = View.VISIBLE
+//            val intent = Intent(Intent.ACTION_PICK)
+//            intent.type = "image/*"
+//            startActivityForResult(intent, GALERY_ADD_AVATAR)
+//        }
         addAvatar.setOnClickListener {
-            imagesLayout.visibility = View.VISIBLE
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, GALERY_ADD_AVATAR)
+            currentMode = "avatar"
+            uploadImage("avatar")
         }
+//        addBanner.setOnClickListener {
+//            imagesLayout.visibility = View.VISIBLE
+//            val intent = Intent(Intent.ACTION_PICK)
+//            intent.type = "image/*"
+//            startActivityForResult(intent, GALERY_ADD_BANNER)
+//        }
         addBanner.setOnClickListener {
-            imagesLayout.visibility = View.VISIBLE
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, GALERY_ADD_BANNER)
+            currentMode = "banner"
+            uploadImage("banner")
         }
 
         val util = Utils()
@@ -115,46 +150,77 @@ class UpdateProfileActivity : AppCompatActivity() {
         cityField?.setText(user.getString("city"))
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GALERY_ADD_AVATAR && resultCode == RESULT_OK) {
-            avatar?.setImageURI(data?.data)
-            avatarUri = data?.data?.toString()
-            val inputStream = contentResolver.openInputStream(data?.data!!)
-            var outputStream: OutputStream? = null
-            try {
-                outputStream = FileOutputStream(File(filesDir, "img1"))
-                var byteRead = inputStream?.read()
-                while(byteRead  != -1) {
-                    outputStream.write(byteRead!!)
-                    byteRead = inputStream?.read()
-                }
-            } finally {
-                inputStream?.close()
-                outputStream?.close()
-            }
-            avatarFile = File(filesDir, "img1")
-        } else if (requestCode == GALERY_ADD_BANNER && resultCode == RESULT_OK) {
-            val imgUri = data?.data
-            banner?.setImageURI(imgUri)
-            bannerUri = data?.data?.toString()
-            val inputStream = contentResolver.openInputStream(data?.data!!)
-            var outputStream: OutputStream? = null
-            try {
-                outputStream = FileOutputStream(File(filesDir, "img2"))
-                var byteRead = inputStream?.read()
-                while(byteRead  != -1) {
-                    outputStream.write(byteRead!!)
-                    byteRead = inputStream?.read()
-                }
-            } finally {
-                inputStream?.close()
-                outputStream?.close()
-            }
-            bannerFile = File(filesDir, "img2")
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (requestCode == GALERY_ADD_AVATAR && resultCode == RESULT_OK) {
+//            avatar?.setImageURI(data?.data)
+//            avatarUri = data?.data?.toString()
+//            val inputStream = contentResolver.openInputStream(data?.data!!)
+//            var outputStream: OutputStream? = null
+//            try {
+//                outputStream = FileOutputStream(File(filesDir, "img1"))
+//                var byteRead = inputStream?.read()
+//                while(byteRead  != -1) {
+//                    outputStream.write(byteRead!!)
+//                    byteRead = inputStream?.read()
+//                }
+//            } finally {
+//                inputStream?.close()
+//                outputStream?.close()
+//            }
+//            avatarFile = File(filesDir, "img1")
+//        } else if (requestCode == GALERY_ADD_BANNER && resultCode == RESULT_OK) {
+//            val imgUri = data?.data
+//            banner?.setImageURI(imgUri)
+//            bannerUri = data?.data?.toString()
+//            val inputStream = contentResolver.openInputStream(data?.data!!)
+//            var outputStream: OutputStream? = null
+//            try {
+//                outputStream = FileOutputStream(File(filesDir, "img2"))
+//                var byteRead = inputStream?.read()
+//                while(byteRead  != -1) {
+//                    outputStream.write(byteRead!!)
+//                    byteRead = inputStream?.read()
+//                }
+//            } finally {
+//                inputStream?.close()
+//                outputStream?.close()
+//            }
+//            bannerFile = File(filesDir, "img2")
+//        } else {
+//            Log.e("TAG", "Error")
+//        }
+//    }
+
+    private fun uploadImage(mode: String) {
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
         } else {
-            Log.e("TAG", "Error")
+            listFiles(mode)
         }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.e("TAG", requestCode.toString())
+        when (requestCode) {
+            101 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    listFiles(currentMode)
+                } else {
+                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+        }
+    }
+
+    private fun listFiles(mode: String) {
+        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
+        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+        pickImages?.visibility = View.VISIBLE
+        greed?.adapter = ImagesAdapter(applicationContext, mode)
     }
 
     private fun update() {
@@ -260,4 +326,67 @@ class UpdateProfileActivity : AppCompatActivity() {
     }
 
 
+    inner class ImagesAdapter : BaseAdapter {
+        var context: Context
+        var mode: String = "image"
+        constructor(context: Context, mode: String) {
+            this.context = context
+            this.mode = mode
+        }
+        override fun getCount(): Int {
+            return rs.count
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            var iv = ImageView(context)
+            rs.moveToPosition(position)
+            var path = rs.getString(0)
+            var bitmap = BitmapFactory.decodeFile(path)
+            iv.setImageBitmap(bitmap)
+            iv.layoutParams = AbsListView.LayoutParams(300, 300)
+
+            iv.setOnClickListener {
+                pickImagesCancel?.text = "Загрузка изображения..."
+                Log.e("TAG", "Вы нажали на картинку $path")
+                val f = if(mode == "avatar") File(filesDir, "file")
+                else if(mode == "banner") File(filesDir, "file2")
+                else File(filesDir, "file")
+
+
+                f.createNewFile();
+
+                val bitmap = bitmap;
+                val bos = ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                val bitmapData = bos.toByteArray();
+
+                val fos = FileOutputStream(f);
+                fos.write(bitmapData);
+                fos.flush();
+                fos.close();
+                pickImages?.visibility = View.GONE
+                uploadScreen?.visibility = View.GONE
+                if(mode == "avatar") {
+                    avatarFile = f
+                    avatar?.setImageBitmap(bitmap)
+                    avatar?.visibility = View.VISIBLE
+                } else if(mode == "banner") {
+                    bannerFile = f
+                    banner?.setImageBitmap(bitmap)
+                    banner?.visibility = View.VISIBLE
+                }
+                pickImagesCancel?.text = "Отмена"
+                currentMode = ""
+            }
+                return iv
+        }
+    }
 }

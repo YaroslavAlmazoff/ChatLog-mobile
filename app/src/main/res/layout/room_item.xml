@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:src="@drawable/nav_profile"
-                android:background="@drawable/rounded_blue"/>
+                android:background="@color/black"/>
         </androidx.cardview.widget.CardView>
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"

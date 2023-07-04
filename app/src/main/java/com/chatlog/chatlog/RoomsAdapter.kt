@@ -17,11 +17,10 @@ import com.squareup.picasso.Picasso
 import java.util.*
 import kotlin.collections.ArrayList
 
-class RoomsAdapter(private val rooms: ArrayList<Room>, val context: Context) : RecyclerView.Adapter<RoomsAdapter.ViewHolder>(), Filterable {
-    var filteredRooms = ArrayList<Room>()
-    init {
-        filteredRooms = rooms
-    }
+
+
+class RoomsAdapter(private val rooms: ArrayList<Room>, val context: Context) : RecyclerView.Adapter<RoomsAdapter.ViewHolder>(), IFilter {
+    private var filteredList = ArrayList<Room>(rooms)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -30,7 +29,7 @@ class RoomsAdapter(private val rooms: ArrayList<Room>, val context: Context) : R
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val room = rooms[position]
+        val room = filteredList[position]
         holder.name?.text = room.name
         if(holder.avatar != null && room.avatar != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${room.avatar}").into(holder.avatar)
@@ -55,7 +54,21 @@ class RoomsAdapter(private val rooms: ArrayList<Room>, val context: Context) : R
 
 
     override fun getItemCount(): Int {
-        return rooms.size
+        return filteredList.size
+    }
+
+    override fun filter(query: String) {
+        filteredList.clear()
+        if (query.isEmpty()) {
+            filteredList.addAll(rooms)
+        } else {
+            for (item in rooms) {
+                if (item.name.contains(query, ignoreCase = true)) {
+                    filteredList.add(item)
+                }
+            }
+        }
+        notifyDataSetChanged()
     }
 
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -74,32 +87,4 @@ class RoomsAdapter(private val rooms: ArrayList<Room>, val context: Context) : R
         }
     }
 
-    override fun getFilter(): Filter {
-        return object : Filter() {
-            override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val charSearch = constraint.toString()
-                filteredRooms = if (charSearch.isEmpty()) {
-                    rooms
-                } else {
-                    val resultList = ArrayList<Room>()
-                    for (row in rooms) {
-                        if (row.name.contains(charSearch)) {
-                            resultList.add(row)
-                        }
-                    }
-                    resultList
-                }
-                val filterResults = FilterResults()
-                filterResults.values = filteredRooms
-                return filterResults
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                filteredRooms = results?.values as ArrayList<Room>
-                notifyDataSetChanged()
-            }
-
-        }
-    }
 }

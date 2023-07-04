@@ -44,7 +44,7 @@ class SelectedImagesAdapter(private val items: ArrayList<SelectedImage>, private
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.image?.setImageURI(Uri.parse(item.uri))
+        holder.image?.setImageURI(item.uri)
         holder.removeImage?.setOnClickListener {
             items.removeAt(position)
             photos.removeAt(position)

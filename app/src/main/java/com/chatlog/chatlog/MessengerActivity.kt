@@ -1,16 +1,36 @@
 package com.chatlog.chatlog
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.location.LocationManager
+import android.media.MediaRecorder
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.squareup.picasso.Picasso
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
@@ -26,10 +46,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
+import java.io.*
 import java.lang.IllegalStateException
+import java.net.URI
 import java.net.URL
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.HttpsURLConnection
@@ -45,40 +64,103 @@ class MessengerActivity : AppCompatActivity() {
     var editButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
     var images: View? = null
 
+    var currentMode: String = ""
+
+    var searchField: SearchView? = null
+
     var upload: ImageView? = null
     var cancel: TextView? = null
     var uploadScreen: View? = null
+    var pickImagesCancel: TextView? = null
 
     var uploadImage: ImageView? = null
     var uploadVideo: ImageView? = null
     var uploadAudio: ImageView? = null
+    var uploadBg: ImageView? = null
 
+    var writeMessage: View? = null
     var messageField: EditText? = null
     var messagesArray: ArrayList<Message>? = null
     var editing: Boolean = false
     var currentMessageId: String = ""
     var currentMessageText: String = ""
 
-    val GALERY_ADD_IMAGE = 1
-    val GALERY_ADD_VIDEO = 2
+    lateinit var rs: Cursor
+    var greed: GridView? = null
+    var pickImages: View? = null
+
+    var audioMessage = -1
+
+
     var image: ImageView? = null
     var video: VideoView? = null
     var imageFile: File? = null
     var videoFile: File? = null
 
-    var imageUri: Uri? = null
-    var videoUri: Uri? = null
-
     var adapter: MessagesAdapter? = null
+
+    private var state: Boolean = false
+
+    var recordVoiceMessage: View? = null
+    var startRecording: ImageView? = null
+    var stopRecording: ImageView? = null
+    var recordText: TextView? = null
+    var recordCancel: TextView? = null
+    var recording: ImageView? = null
+
+    var voiceText: TextView? = null
+    var mediaRecorder: MediaRecorder? = null
+
+    var bgImage: ImageView? = null
 
     override fun onStop() {
         super.onStop()
         stopEventSource()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_messenger)
+
+        searchField = findViewById(R.id.search_field)
+
+        val initWidth = searchField?.width
+
+        searchField?.setOnSearchClickListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = initWidth!! + 500 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+        }
+        searchField?.setOnCloseListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = 140 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+            return@setOnCloseListener false
+        }
+
+        searchField?.setOnQueryTextListener(object : SearchView.OnQueryTextListener, SearchView.OnSuggestionListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let {
+                    adapter?.filter(it)
+                }
+                return true
+            }
+
+            override fun onSuggestionClick(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
+
+            override fun onSuggestionSelect(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
+        })
 
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
@@ -94,22 +176,90 @@ class MessengerActivity : AppCompatActivity() {
         uploadImage = findViewById(R.id.upload_image)
         uploadVideo = findViewById(R.id.upload_video)
         uploadAudio = findViewById(R.id.upload_audio)
+        uploadBg = findViewById(R.id.upload_bg)
+        recordVoiceMessage = findViewById(R.id.record_voice_message)
+        startRecording = findViewById(R.id.start_recording)
+        stopRecording = findViewById(R.id.stop_recording)
+        recording = findViewById(R.id.recording)
+        recordText = findViewById(R.id.record_text)
+        recordCancel = findViewById(R.id.record_cancel)
+        writeMessage = findViewById(R.id.write_message)
+        voiceText = findViewById(R.id.voice_text)
+
+        pickImagesCancel = findViewById(R.id.pick_images_cancel)
+
+        bgImage = findViewById(R.id.bg_image)
 
         images = findViewById(R.id.images)
+        greed = findViewById(R.id.greed)
+        pickImages = findViewById(R.id.pick_images)
 
         image = findViewById(R.id.image)
         video = findViewById(R.id.video)
 
+        pickImagesCancel?.setOnClickListener {
+            pickImages?.visibility = View.GONE
+            uploadScreen?.visibility = View.GONE
+        }
+
         uploadImage?.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, GALERY_ADD_IMAGE)
+            currentMode = "image"
+            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
+            } else {
+                listFiles(currentMode)
+            }
+
         }
         uploadVideo?.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "video/*"
-            startActivityForResult(intent, GALERY_ADD_VIDEO)
+            currentMode = "video"
+            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO)!= PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_VIDEO), 101)
+            } else {
+                listFiles(currentMode)
+            }
         }
+        uploadBg?.setOnClickListener {
+            currentMode = "bg"
+            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
+            } else {
+                listFiles(currentMode)
+            }
+        }
+        uploadAudio?.setOnClickListener {
+            uploadScreen?.visibility = View.GONE
+            writeMessage?.visibility = View.GONE
+            recordVoiceMessage?.visibility = View.VISIBLE
+        }
+
+        startRecording?.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO),102)
+            } else {
+                startingRecording()
+            }
+        }
+        stopRecording?.setOnClickListener {
+            stopRecording?.visibility = View.GONE
+            startRecording?.visibility = View.VISIBLE
+            recordText?.setText(R.string.voice)
+            recordCancel?.visibility = View.VISIBLE
+            recording?.visibility = View.GONE
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+            state = false
+            recordVoiceMessage?.visibility = View.GONE
+            writeMessage?.visibility = View.VISIBLE
+            messageField?.visibility = View.GONE
+            voiceText?.visibility = View.VISIBLE
+            mediaRecorder = null
+        }
+        recordCancel?.setOnClickListener {
+            recordVoiceMessage?.visibility = View.GONE
+            writeMessage?.visibility = View.VISIBLE
+        }
+
 
         upload?.setOnClickListener {
             uploadScreen?.visibility = View.VISIBLE
@@ -127,79 +277,100 @@ class MessengerActivity : AppCompatActivity() {
             imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
         }
 
-        getMessagesInBackground(messagesArray!!)
-
-        messagesList?.adapter = adapter
         messagesList?.layoutManager = LinearLayoutManager(this)
+        messagesList?.adapter = adapter
 
+        getMessagesInBackground()
+
+
+        adapter?.filter("")
         startEventSource()
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GALERY_ADD_IMAGE && resultCode == RESULT_OK) {
-            if(data?.data != null) {
-                images?.visibility = View.VISIBLE
-                image?.setImageURI(data?.data)
-                imageUri = data?.data
-                val inputStream = contentResolver.openInputStream(data?.data!!)
-                var outputStream: OutputStream? = null
-                try {
-                    outputStream = FileOutputStream(File(filesDir, "file"))
-                    var byteRead = inputStream?.read()
-                    while(byteRead  != -1) {
-                        outputStream.write(byteRead!!)
-                        byteRead = inputStream?.read()
-                    }
-                } finally {
-                    inputStream?.close()
-                    outputStream?.close()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startingRecording() {
+        if(File(filesDir, "voice.mp3").exists()) {
+            File(filesDir, "voice.mp3").delete()
+        }
+        mediaRecorder = MediaRecorder()
+        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        mediaRecorder?.setOutputFile(File(filesDir, "voice.mp3"))
+
+        startRecording?.visibility = View.GONE
+        stopRecording?.visibility = View.VISIBLE
+        recordText?.setText(R.string.recording_text)
+        recordCancel?.visibility = View.GONE
+        recording?.visibility = View.VISIBLE
+
+        mediaRecorder?.prepare()
+        mediaRecorder?.start()
+        state = true
+        Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.e("TAG", requestCode.toString())
+        when (requestCode) {
+            101 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    listFiles(currentMode)
+                    currentMode = ""
+                } else {
+                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
                 }
-                imageFile = File(filesDir, "file")
-                uploadScreen?.visibility = View.GONE
+                return
             }
-        } else if (requestCode == GALERY_ADD_VIDEO && resultCode == RESULT_OK) {
-            if(data?.data != null) {
-                images?.visibility = View.VISIBLE
-                video?.setVideoURI(data?.data)
-                val mediaController = MediaController(this)
-                mediaController.setAnchorView(video)
-                mediaController.setMediaPlayer(video)
-                video?.setMediaController(mediaController)
-                video?.start()
-                videoUri = data?.data
-                val inputStream = contentResolver.openInputStream(data?.data!!)
-                var outputStream: OutputStream? = null
-                try {
-                    outputStream = FileOutputStream(File(filesDir, "video"))
-                    var byteRead = inputStream?.read()
-                    while(byteRead  != -1) {
-                        outputStream.write(byteRead!!)
-                        byteRead = inputStream?.read()
-                    }
-                } finally {
-                    inputStream?.close()
-                    outputStream?.close()
+            102 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startingRecording()
+                } else {
+                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
                 }
-                videoFile = File(filesDir, "video")
-                uploadScreen?.visibility = View.GONE
+                return
             }
-        } else {
-            Log.e("TAG", "Error")
+            else -> {
+                // Ignore all other requests.
+            }
         }
     }
-    fun getMessagesInBackground(messages: ArrayList<Message>) {
+
+    private fun listFiles(mode: String) {
+        if(mode == "image") {
+            var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
+            rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+        } else if(mode == "video") {
+            var cols = listOf(MediaStore.Video.Thumbnails.DATA).toTypedArray()
+            rs = contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+        } else if(mode == "bg") {
+            var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
+            rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+        }
+        pickImages?.visibility = View.VISIBLE
+        greed?.adapter = ImagesAdapter(applicationContext, mode)
+    }
+
+    fun getMessagesInBackground() {
         Thread {
             try {
                 getUser()
-                getMessages(messages)
+                getMessages()
+                getRoom()
                 runOnUiThread {
                     messagesList?.adapter?.notifyDataSetChanged()
                     pb?.visibility = View.GONE
-                    messagesArray?.count()?.minus(1)?.let { messagesList?.smoothScrollToPosition(it) }
-                }
-                if(messagesArray!![messagesArray?.count()?.minus(1)!!].user != null) {
-                    if(userData?.getJSONObject("user")?.getString("_id") != messagesArray!![messagesArray?.count()?.minus(1)!!].user) {
-                        read()
+                    if(messagesArray?.isNotEmpty()!!) {
+                        messagesArray?.count()?.minus(1)
+                            ?.let { messagesList?.smoothScrollToPosition(it) }
+                        if(messagesArray!![messagesArray?.count()?.minus(1)!!].user != null) {
+                            if(userData?.getJSONObject("user")?.getString("_id") != messagesArray!![messagesArray?.count()?.minus(1)!!].user) {
+                                read()
+                            }
+                        }
                     }
                 }
             } catch(e: InterruptedException) {
@@ -207,11 +378,20 @@ class MessengerActivity : AppCompatActivity() {
             }
         }.start()
     }
-    fun getMessages(messages: ArrayList<Message>) {
+    fun getRoom() {
+        val roomData = URL(Constants().SITE_NAME + "roombyid/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        Log.e("TAG", roomData)
+        val image = JSONObject(roomData).getJSONObject("room").getString("bg")
+        runOnUiThread {
+            Picasso.get().load(Constants().SITE_NAME_FILES + "/roombackgrounds/${image}").into(bgImage)
+            bgImage?.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+    }
+    fun getMessages() {
         val usersData = URL(Constants().SITE_NAME + "getmessagesstart/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
         val usersArray = JSONObject(usersData).getJSONArray("messages")
         for(i in 0 until usersArray.length()) {
-            messages.add(Message(
+            messagesArray?.add(Message(
                 usersArray.getJSONObject(i).getString("message"),
                 usersArray.getJSONObject(i).getString("name"),
                 usersArray.getJSONObject(i).getString("avatarUrl"),
@@ -225,49 +405,12 @@ class MessengerActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getString("videoUrl"),
                 usersArray.getJSONObject(i).getString("audioUrl"),
                 usersArray.getJSONObject(i).getJSONArray("readedThisMessage"),
-                null, null
+                null, null, null
             ))
         }
-        if(imageUri != null) {
-            messages.add(Message(
-                messageField?.text?.toString()!!,
-                userData?.getJSONObject("user")?.getString("name")!!,
-                userData?.getJSONObject("user")?.getString("avatarUrl")!!,
-                "Сейчас",
-                userData?.getJSONObject("user")?.getString("_id")!!,
-                intent.getStringExtra("id")!!,
-                true,
-                false,
-                "",
-                "",
-                "",
-                "",
-                JSONArray(),
-                imageUri,
-                null
-            ))
-            imageUri = null
-            imageFile = null
-        } else if(videoUri != null) {
-            messages.add(Message(
-                messageField?.text?.toString()!!,
-                userData?.getJSONObject("user")?.getString("name")!!,
-                userData?.getJSONObject("user")?.getString("avatarUrl")!!,
-                "Сейчас",
-                userData?.getJSONObject("user")?.getString("_id")!!,
-                intent.getStringExtra("id")!!,
-                true,
-                false,
-                "",
-                "",
-                "",
-                "",
-                JSONArray(),
-                null,
-                videoUri
-            ))
-            videoUri = null
-            videoFile = null
+        runOnUiThread {
+            adapter?.filter("")
+            messagesList?.adapter?.notifyDataSetChanged()
         }
     }
     fun getUser() {
@@ -294,12 +437,6 @@ class MessengerActivity : AppCompatActivity() {
     }
 
     private fun sendMessage2() {
-        if(imageFile != null || videoFile != null) {
-            startEventSource()
-        }
-        runOnUiThread {
-            adapter?.clear()
-        }
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
 
@@ -314,25 +451,35 @@ class MessengerActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create()).build()
         val chatLogApi = retrofit.create(ChatLogApi::class.java)
 
+        val audioFile = File(filesDir, "voice.mp3")
+
         var requestFile1: RequestBody? = null
         var requestFile2: RequestBody? = null
+        var requestFile3: RequestBody? = null
         var body1: MultipartBody.Part? = null
         var body2: MultipartBody.Part? = null
+        var body3: MultipartBody.Part? = null
 
         val token = userData?.getString("token")
 
         val isFile = RequestBody.create("text/plain".toMediaTypeOrNull(), "false")
         val message = RequestBody.create("text/plain".toMediaTypeOrNull(), messageField?.text?.toString()!!)
         val date = RequestBody.create("text/plain".toMediaTypeOrNull(), Utils().getCurrentDateAndTime())
-        val audio = RequestBody.create("text/plain".toMediaTypeOrNull(), "")
 
         if(imageFile != null) {
             requestFile1 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
             body1 = MultipartBody.Part.createFormData("file", imageFile?.name, requestFile1)
+            imageFile = null
         }
         if(videoFile != null) {
             requestFile2 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), videoFile!!)
             body2 = MultipartBody.Part.createFormData("videoFile", videoFile?.name, requestFile2)
+            videoFile = null
+        }
+        if(audioFile.exists()) {
+            requestFile3 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), audioFile)
+            body3 = MultipartBody.Part.createFormData("audioFile", audioFile?.name, requestFile3)
+            audioMessage++
         }
 
         try {
@@ -342,28 +489,23 @@ class MessengerActivity : AppCompatActivity() {
                     message,
                     date,
                     isFile,
-                    body1, body2, audio,"Bearer $token"
+                    body1, body2, body3, "Bearer $token"
                 )
             }
-
         } catch(e: IllegalStateException) {
             Log.e("TAG", "Ошибка но ничего страшного")
-        } finally {
-            if(imageFile != null || videoFile != null) {
-                getMessagesInBackground(messagesArray!!)
-                startEventSource()
-            }
         }
         runOnUiThread {
+            messageField?.visibility = View.VISIBLE
             messageField?.setText("")
             images?.visibility = View.GONE
+            voiceText?.visibility = View.GONE
         }
-
     }
     private var sseHandler: SSEHandler? = SSEHandler()
     private var eventSource: EventSource? = null
     private fun startEventSource() {
-        eventSource = EventSource.Builder("https://chatlog.ru/api/connect/${intent.getStringExtra("id")}")
+        eventSource = EventSource.Builder("https://chatlog.ru/api/connect-mobile/${intent.getStringExtra("id")}")
             .eventHandler(sseHandler)
             .build()
         eventSource?.connect()
@@ -380,31 +522,31 @@ class MessengerActivity : AppCompatActivity() {
         }
 
         override fun onMessage(event: String, message: MessageEvent) {
-            runOnUiThread {
-                adapter?.clear()
-            }
             Log.e("TAG", "message")
             Log.e("TAG", message.data)
-            val messages = JSONArray(message.data)
-            for(i in 0 until messages.length()) {
-                messagesArray?.add(Message(
-                    messages.getJSONObject(i).getString("message"),
-                    messages.getJSONObject(i).getString("name"),
-                    messages.getJSONObject(i).getString("avatarUrl"),
-                    messages.getJSONObject(i).getString("date"),
-                    messages.getJSONObject(i).getString("user"),
-                    messages.getJSONObject(i).getString("room"),
-                    messages.getJSONObject(i).getBoolean("isNotReaded"),
-                    messages.getJSONObject(i).getBoolean("isFile"),
-                    messages.getJSONObject(i).getString("_id"),
-                    messages.getJSONObject(i).getString("imageUrl"),
-                    messages.getJSONObject(i).getString("videoUrl"),
-                    messages.getJSONObject(i).getString("audioUrl"),
-                    messages.getJSONObject(i).getJSONArray("readedThisMessage"),
-                    null, null
+            val message = JSONObject(message.data)
+            messagesArray?.add(Message(
+                message.getString("message"),
+                message.getString("name"),
+                message.getString("avatarUrl"),
+                message.getString("date"),
+                message.getString("user"),
+                message.getString("room"),
+                message.getBoolean("isNotReaded"),
+                message.getBoolean("isFile"),
+                message.getString("_id"),
+                message.getString("imageUrl"),
+                message.getString("videoUrl"),
+                message.getString("audioUrl"),
+                message.getJSONArray("readedThisMessage"),
+                    null, null, null
                 ))
+            messagesArray?.forEach {
+                Log.e("TAG", it.message)
             }
             runOnUiThread {
+                adapter?.notifyDataSetChanged()
+                adapter?.filter("")
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
                 messageField?.setText("")
@@ -430,6 +572,169 @@ class MessengerActivity : AppCompatActivity() {
 
         override fun onClosed(willReconnect: Boolean) {
             Log.e("TAG", "reconnect? $willReconnect")
+        }
+    }
+    inner class ImagesAdapter : BaseAdapter {
+        var context: Context
+        var mode: String = "image"
+        constructor(context: Context, mode: String) {
+            this.context = context
+            this.mode = mode
+        }
+        override fun getCount(): Int {
+            return rs.count
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            if(mode == "image") {
+                var iv = ImageView(context)
+                rs.moveToPosition(position)
+                var path = rs.getString(0)
+                var bitmap = BitmapFactory.decodeFile(path)
+                iv.setImageBitmap(bitmap)
+                iv.layoutParams = AbsListView.LayoutParams(300, 300)
+
+                iv.setOnClickListener {
+                    pickImagesCancel?.text = "Загрузка изображения..."
+                    Log.e("TAG", "Вы нажали на картинку $path")
+                    val f = File(filesDir, "file");
+                    f.createNewFile();
+
+                    val bitmap = bitmap;
+                    val bos = ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                    val bitmapData = bos.toByteArray();
+
+                    val fos = FileOutputStream(f);
+                    fos.write(bitmapData);
+                    fos.flush();
+                    fos.close();
+                    imageFile = f
+                    pickImages?.visibility = View.GONE
+                    uploadScreen?.visibility = View.GONE
+                    images?.visibility = View.VISIBLE
+                    image?.setImageURI(Uri.fromFile(imageFile))
+                    image?.visibility = View.VISIBLE
+                    pickImagesCancel?.text = "Отмена"
+                }
+
+                return iv
+            } else if (mode == "video") {
+                var iv = ImageView(context)
+                rs.moveToPosition(position)
+                var path = rs.getString(0)
+                var uri = Uri.parse("file://$path")
+                Glide.with(context)
+                    .load(uri)
+                    .into(iv)
+                iv.layoutParams = AbsListView.LayoutParams(300, 300)
+
+                iv.setOnClickListener {
+                    pickImagesCancel?.text = "Загрузка видео..."
+                    Thread {
+                        try {
+                            val file = File(filesDir, "file")
+                            val inputStream = contentResolver.openInputStream(uri)
+                            var outputStream: OutputStream? = null
+                            try {
+                                outputStream = FileOutputStream(file)
+                                var byteRead = inputStream?.read()
+                                while(byteRead  != -1) {
+                                    outputStream.write(byteRead!!)
+                                    byteRead = inputStream?.read()
+                                }
+                            } finally {
+                                inputStream?.close()
+                                outputStream?.close()
+                            }
+                            videoFile = file
+                        } catch (e: InterruptedException) {
+                            Log.e("TAG", "ERROR")
+                        }
+                    }.start()
+                    pickImages?.visibility = View.GONE
+                    uploadScreen?.visibility = View.GONE
+                    images?.visibility = View.VISIBLE
+                    Glide.with(context)
+                        .load(uri)
+                        .into(image!!)
+                    image?.visibility = View.VISIBLE
+                    pickImagesCancel?.text = "Отмена"
+                }
+
+                return iv
+            } else if (mode == "bg") {
+                var iv = ImageView(context)
+                rs.moveToPosition(position)
+                var path = rs.getString(0)
+                var bitmap = BitmapFactory.decodeFile(path)
+                iv.setImageBitmap(bitmap)
+
+                iv.layoutParams = AbsListView.LayoutParams(300, 300)
+
+                iv.setOnClickListener {
+                    pickImagesCancel?.text = "Загрузка изображения..."
+                    Log.e("TAG", "Вы нажали на картинку $path")
+                    val f = File(filesDir, "bgfile")
+                    f.createNewFile()
+
+                    val bitmap = bitmap
+                    val bos = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos)
+                    val bitmapData = bos.toByteArray()
+
+                    val fos = FileOutputStream(f)
+                    fos.write(bitmapData)
+                    fos.flush()
+                    fos.close()
+
+
+                    val interceptor = HttpLoggingInterceptor()
+                    interceptor.level = HttpLoggingInterceptor.Level.BODY
+
+                    val client = OkHttpClient.Builder()
+                        .addInterceptor(interceptor)
+                        .build()
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl(Constants().SITE_NAME).client(client)
+                        .addConverterFactory(GsonConverterFactory.create()).build()
+                    val chatLogApi = retrofit.create(ChatLogApi::class.java)
+
+                    var requestFile: RequestBody? = null
+                    var body: MultipartBody.Part? = null
+
+                    if(f != null) {
+                        requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), f)
+                        body = MultipartBody.Part.createFormData("file", f.name, requestFile)
+                    }
+
+                    try {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            chatLogApi.sendRoomBg(
+                                intent.getStringExtra("id")!!,
+                                body
+                            )
+                        }
+                    } catch(e: IllegalStateException) {
+                        Log.e("TAG", "Ошибка но ничего страшного")
+                    }
+                    pickImages?.visibility = View.GONE
+                    uploadScreen?.visibility = View.GONE
+                    bgImage?.setImageBitmap(bitmap)
+                    pickImagesCancel?.text = "Отмена"
+                }
+
+                return iv
+            }
+            return ImageView(context)
         }
     }
 }

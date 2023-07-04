@@ -1,9 +1,11 @@
 package com.chatlog.chatlog
 
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import org.json.JSONObject
 import java.io.File
 
@@ -67,6 +69,13 @@ class NavigationActivity : AppCompatActivity() {
         quit.setOnClickListener {
             Utils().clearUserData(filesDir)
             val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        findViewById<TextView>(R.id.delete_profile).setOnClickListener {
+            val url = "https://chatlog.ru"
+
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
         }
     }

@@ -119,10 +119,33 @@
     <string name="write_message_hint">Напишите сообщение</string>
 
     <string name="not_activated">Ваш профиль не активирован. На указанную почту должно прийти письмо с ссылкой на активацию.</string>
-    <string name="delete_profile">Удалить профиль вы можете удалить на сайте.</string>
+    <string name="delete_profile">Удалить профиль вы сможете на сайте.</string>
     <string name="delete_message">Удалить</string>
     <string name="edit_message">Редактировать</string>
     <string name="cancel">Отмена</string>
     <string name="voice">Голосовое сообщение</string>
+    <string name="record_text">Начать запись</string>
+    <string name="recording_text">Идет запись...</string>
 
+    <string name="create_discussion_button">Создать беседу</string>
+    <string name="discussion_creating">Создание беседы</string>
+    <string name="discussion_name_hint">Введите название</string>
+    <string name="upload_avatar">Загрузить аватарку</string>
+    <string name="create">Создать</string>
+    <string name="discussion_title">Название беседы</string>
+    <string name="discussion_avatar">Аватар</string>
+    <string name="change">Изменить</string>
+    <string name="discussion_members">Участники</string>
+    <string name="discussion_exclude">Исключить</string>
+    <string name="save_changes">Сохранить изменения</string>
+    <string name="add_members_button">+Добавить</string>
+    <string name="excluded">Пользователь был исключен из беседы</string>
+    <string name="add_members_title">Выберите друзей, которых хотите пригласить в беседу</string>
+    <string name="add">Добавить</string>
+    <string name="added">Добавлен</string>
+    <string name="leave_discussion">Выйти из беседы</string>
+    <string name="remove_discussion">Удалить беседу</string>
+    <string name="left">Вы покинули беседу</string>
+    <string name="removed">Беседа удалена</string>
+    <string name="server_error">Возникла ошибка на стороне сервера. Попробуйте еще раз</string>
 </resources>

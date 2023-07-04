@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/gradient3"
     tools:context=".MessengerActivity">
+    <ImageView
+        android:id="@+id/bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
@@ -24,7 +30,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-
             <TextView
                 android:id="@+id/head_text"
                 android:layout_width="match_parent"
@@ -56,6 +61,15 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
             </ScrollView>
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_field"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textColor="@color/black"
+                android:background="@drawable/search_field"
+                android:layout_margin="10dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
         <ProgressBar
             android:id="@+id/pb"
@@ -75,6 +89,37 @@
             android:layout_height="0dp"
             app:layout_constraintTop_toBottomOf="@id/head"
             app:layout_constraintBottom_toTopOf="@id/write_message"/>
+        <ImageView
+            android:id="@+id/upload_bg"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/upload_bg"
+            android:layout_margin="12dp"
+            app:layout_constraintBottom_toTopOf="@id/write_message"
+            app:layout_constraintEnd_toEndOf="parent"/>
+        <LinearLayout
+            android:id="@+id/images"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:layout_marginTop="10dp"
+            app:layout_constraintBottom_toTopOf="@id/write_message"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:visibility="gone"
+                android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+            <VideoView
+                android:visibility="gone"
+                android:id="@+id/video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+        </LinearLayout>
         <LinearLayout
             android:id="@+id/write_message"
             android:layout_width="match_parent"
@@ -105,6 +150,20 @@
                 android:backgroundTint="@color/neon_blue"
                 android:textSize="8pt"
                 android:layout_weight="1"/>
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/voice_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/neon_blue"
+                android:text="@string/voice"
+                android:textSize="8pt"
+                android:layout_marginLeft="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_weight="1"/>
             <ImageView
                 android:id="@+id/send_message"
                 android:layout_width="60dp"
@@ -125,28 +184,74 @@
                 android:textSize="15dp"
                 app:buttonColor="@color/neon_blue"
                 app:glowColor="@color/neon_blue" />
-            <LinearLayout
-                android:id="@+id/images"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                android:layout_marginTop="10dp"
-                app:layout_constraintTop_toBottomOf="@id/edit_button"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-                <ImageView
-                    android:id="@+id/image"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
-                <VideoView
-                    android:id="@+id/video"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
-            </LinearLayout>
+
         </LinearLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:visibility="gone"
+            android:id="@+id/record_voice_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/g_dark"
+            android:layout_marginBottom="75dp"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:padding="5dp">
+            <ImageView
+                android:id="@+id/start_recording"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:src="@drawable/play_video"/>
+            <ImageView
+                android:visibility="gone"
+                android:id="@+id/stop_recording"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/stop"/>
+            <TextView
+                android:id="@+id/record_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/neon_blue"
+                android:text="@string/voice"
+                android:textSize="8pt"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="10dp"/>
+            <TextView
+                android:id="@+id/record_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:text="@string/cancel"
+                android:textSize="8pt"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="10dp"/>
+            <com.airbnb.lottie.LottieAnimationView
+                android:visibility="gone"
+                android:id="@+id/recording"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                app:lottie_url="https://assets6.lottiefiles.com/packages/lf20_Cd1qOIuzUi.json"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/upload_screen"
@@ -234,6 +339,37 @@
                 android:text="@string/cancel"
                 android:textSize="10pt" />
         </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pick_images"
+        android:visibility="gone"
+        android:background="@color/transparent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/pick_images_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:text="@string/cancel"
+            android:textSize="10pt"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:textAlignment="center"
+            app:layout_constraintTop_toTopOf="parent" />
+        <GridView
+            android:id="@+id/greed"
+            android:numColumns="3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintTop_toTopOf="@id/pick_images_cancel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.fragment.app.FragmentContainerView

@@ -35,6 +35,9 @@ class MainActivity : AppCompatActivity() {
             try {
                 if(JSONObject(user).getString("token") != null) {
                     checkToken()
+                } else {
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
                 }
             } catch(e: JSONException) {
                 val intent = Intent(this, LoginActivity::class.java)
@@ -66,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 Log.e("TAG", userData.toString())
                 val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "verify")
+                val url = URL(Constants().SITE_NAME + "refresh")
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Content-Type", "application/json")

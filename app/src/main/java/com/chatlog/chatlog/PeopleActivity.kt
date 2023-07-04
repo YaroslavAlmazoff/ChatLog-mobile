@@ -10,15 +10,21 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
+import java.io.File
 import java.net.URL
 
 
 class PeopleActivity : AppCompatActivity() {
+    var userData: JSONObject? = null
     var usersList: RecyclerView? = null
     var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people)
+
+        var util = Utils()
+        userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+
         initialize()
     }
     override fun onRestart() {
@@ -39,7 +45,7 @@ class PeopleActivity : AppCompatActivity() {
 
         getUsersInBackground(usersArray)
 
-        usersList?.adapter = PeopleAdapter(usersArray)
+        usersList?.adapter = PeopleAdapter(usersArray, userData!!, this)
         usersList?.layoutManager = LinearLayoutManager(this)
     }
     private fun getUsersInBackground(users: ArrayList<User>) {

@@ -7,16 +7,27 @@
         <entry key="app/src/main/res/drawable/message.xml" value="0.1265" />
         <entry key="app/src/main/res/drawable/my_message.xml" value="0.1265" />
         <entry key="app/src/main/res/drawable/search_field.xml" value="0.1265" />
+        <entry key="app/src/main/res/layout/activity_add_members.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_adverts.xml" value="0.19794784095767423" />
+        <entry key="app/src/main/res/layout/activity_chat_messenger.xml" value="0.2599401453612655" />
+        <entry key="app/src/main/res/layout/activity_create_discussion.xml" value="0.24925181701581872" />
+        <entry key="app/src/main/res/layout/activity_create_post.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/activity_discussion_settings.xml" value="0.18359020852221214" />
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.10614291684078563" />
+        <entry key="app/src/main/res/layout/activity_images_test.xml" value="0.18676337262012693" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1931097008159565" />
         <entry key="app/src/main/res/layout/activity_message_video.xml" value="0.26079521162890124" />
-        <entry key="app/src/main/res/layout/activity_messenger.xml" value="0.25" />
-        <entry key="app/src/main/res/layout/activity_messenger_list.xml" value="0.12390305056414543" />
-        <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.12787296280819055" />
+        <entry key="app/src/main/res/layout/activity_messenger.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_messenger_list.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_not_activated.xml" value="0.165" />
-        <entry key="app/src/main/res/layout/activity_register.xml" value="0.11596322607605516" />
+        <entry key="app/src/main/res/layout/activity_people.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/activity_register.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_update_profile.xml" value="0.2171868319794784" />
+        <entry key="app/src/main/res/layout/activity_user.xml" value="0.2736212056434374" />
+        <entry key="app/src/main/res/layout/add_member_item.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/member_item.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/message.xml" value="0.25" />
         <entry key="app/src/main/res/layout/room_item.xml" value="0.12787296280819055" />
         <entry key="app/src/main/res/layout/user_item.xml" value="0.1" />

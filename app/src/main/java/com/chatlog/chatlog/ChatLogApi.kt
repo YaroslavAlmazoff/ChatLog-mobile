@@ -39,7 +39,46 @@ interface ChatLogApi {
         @Part("isFile") isFile: RequestBody,
         @Part file: MultipartBody.Part?,
         @Part videoFile: MultipartBody.Part?,
-        @Part("audio") audioFile: RequestBody,
+        @Part audioFile: MultipartBody.Part?,
         @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
+    @POST("new-chatmessages-mobile/{id}")
+    suspend fun sendChatMessage(
+        @Path("id") id: String,
+        @Part("message") message: RequestBody,
+        @Part("date") date: RequestBody,
+        @Part("isFile") isFile: RequestBody,
+        @Part file: MultipartBody.Part?,
+        @Part videoFile: MultipartBody.Part?,
+        @Part audioFile: MultipartBody.Part?,
+        @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
+    @POST("uploadbg-mobile/{id}")
+    suspend fun sendRoomBg(
+        @Path("id") id: String,
+        @Part file: MultipartBody.Part?,
+    ): String
+
+    @GET("last-message-mobile/{id}")
+    suspend fun getLastMessage(@Path("id") id: String): Message
+
+    @Multipart
+    @POST("createchatroom")
+    suspend fun createDiscussion(
+        @Part("title") title: String,
+        @Part file: MultipartBody.Part?,
+        @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
+    @POST("edit-discussion/{id}")
+    suspend fun saveDiscussion(
+        @Path("id") id: String,
+        @Part("title") title: String,
+        @Part file: MultipartBody.Part?,
     ): String
 }

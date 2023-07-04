@@ -1,15 +1,22 @@
 package com.chatlog.chatlog
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONObject
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
-class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<PeopleAdapter.ViewHolder>() {
+class PeopleAdapter(private val people: ArrayList<User>, private val userData: JSONObject, private val activity: Activity) : RecyclerView.Adapter<PeopleAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.user_item, parent, false)
@@ -32,11 +39,49 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
             intent.putExtra("id", user.id)
             it.context.startActivity(intent)
         }
+        holder.messaging?.setOnClickListener {
+            createRoom(user.id, it.context)
+        }
     }
 
 
     override fun getItemCount(): Int {
         return people.size
+    }
+
+    private fun createRoom(id: String, context: Context) {
+        Thread {
+            try {
+//                val url = URL(Constants().SITE_NAME + "createroom/$id")
+//                val connection = url.openConnection() as HttpsURLConnection
+//                connection.requestMethod = "GET"
+//                connection.doOutput = true
+//                connection.setRequestProperty("Content-Type", "application/json")
+//                connection.setRequestProperty("Accept-Charset", "utf-8")
+//                connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
+//                var data: Int = connection.inputStream.read()
+//                var result = ""
+//                var byteArr = byteArrayOf()
+//                while(data != -1) {
+//                    result += data.toChar().toString()
+//                    byteArr.plus(data.toByte())
+//                    data = connection.inputStream.read()
+//                }
+                val result = URL(Constants().SITE_NAME + "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/$id").readText(Charsets.UTF_8)
+                Log.e("TAG", result)
+                activity.runOnUiThread {
+                    if(JSONObject(result).getInt("err") == 0 || JSONObject(result).getInt("err") == 1) {
+                        val intent = Intent(context, MessengerActivity::class.java)
+                        intent.putExtra("id", JSONObject(result).getJSONObject("room").getString("_id"))
+                        activity.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, activity.resources.getString(R.string.server_error), Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "Error")
+            }
+        }.start()
     }
 
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -45,6 +90,7 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
         var address: TextView? = null
         var avatar: ImageView? = null
         var userItem: View? = null
+        var messaging: com.sanojpunchihewa.glowbutton.GlowButton? = null
 
         init {
             nameAndSurname = itemView.findViewById(R.id.user_item_name_and_surname)
@@ -52,6 +98,7 @@ class PeopleAdapter(private val people: ArrayList<User>) : RecyclerView.Adapter<
             address = itemView.findViewById(R.id.user_item_address)
             avatar = itemView.findViewById(R.id.user_item_avatar)
             userItem = itemView.findViewById(R.id.user_item)
+            messaging = itemView.findViewById(R.id.user_button)
         }
     }
 }

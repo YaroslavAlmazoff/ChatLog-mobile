@@ -25,13 +25,37 @@ class MessengerListActivity : AppCompatActivity() {
     var pb2: ProgressBar? = null
     var searchField: SearchView? = null
 
+    var createDiscussionButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_messenger_list)
         searchField = findViewById(R.id.search_field)
 
+        val initWidth = searchField?.width
+
+        searchField?.setOnSearchClickListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = initWidth!! + 500 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+        }
+        searchField?.setOnCloseListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = 140 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+            return@setOnCloseListener false
+        }
+
         val cancelIcon = searchField?.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
         cancelIcon?.setColorFilter(Color.WHITE)
+
+        createDiscussionButton = findViewById(R.id.create_discussion_button)
+
+        createDiscussionButton?.setOnClickListener {
+            val intent = Intent(this, CreateDiscussion::class.java)
+            startActivity(intent)
+        }
+
         initialize()
     }
     override fun onRestart() {
@@ -53,41 +77,56 @@ class MessengerListActivity : AppCompatActivity() {
         pb = findViewById(R.id.pb)
         pb2 = findViewById(R.id.pb2)
 
-
-        getRoomsInBackground(roomsArray, chatRoomsArray)
         val roomsAdapter = RoomsAdapter(roomsArray, applicationContext)
         val chatRoomsAdapter = ChatRoomsAdapter(chatRoomsArray, applicationContext)
 
-        roomsList?.adapter = roomsAdapter
         roomsList?.layoutManager = LinearLayoutManager(this)
+        roomsList?.adapter = roomsAdapter
 
-        chatRoomsList?.adapter = chatRoomsAdapter
         chatRoomsList?.layoutManager = LinearLayoutManager(this)
+        chatRoomsList?.adapter = chatRoomsAdapter
 
-        searchField?.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+        // move this call after setting the adapters
+        getRoomsInBackground(roomsArray, chatRoomsArray, roomsAdapter, chatRoomsAdapter)
+
+        searchField?.setOnQueryTextListener(object : SearchView.OnQueryTextListener, SearchView.OnSuggestionListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                roomsAdapter.filter.filter(newText)
+                newText?.let {
+                    roomsAdapter.filter(it)
+                    chatRoomsAdapter.filter(it)
+                }
                 return true
             }
 
+            override fun onSuggestionClick(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
+
+            override fun onSuggestionSelect(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
         })
     }
-    private fun getRoomsInBackground(rooms: ArrayList<Room>, chatRooms: ArrayList<ChatRoom>) {
+    private fun getRoomsInBackground(rooms: ArrayList<Room>, chatRooms: ArrayList<ChatRoom>, roomsAdapter: RoomsAdapter, chatRoomsAdapter: ChatRoomsAdapter) {
         Thread {
             try {
                 getRooms(rooms)
                 runOnUiThread {
                     roomsList?.adapter?.notifyDataSetChanged()
                     pb?.visibility = View.GONE
+                    roomsAdapter.filter("")
                 }
                 getChatRooms(chatRooms)
                 runOnUiThread {
                     chatRoomsList?.adapter?.notifyDataSetChanged()
                     pb2?.visibility = View.GONE
+                    chatRoomsAdapter.filter("")
                 }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
@@ -115,6 +154,7 @@ class MessengerListActivity : AppCompatActivity() {
                 roomsArray.getJSONObject(i).getString("_id"),
             ))
         }
+        runOnUiThread {roomsList?.adapter?.notifyDataSetChanged()}
     }
     private fun getChatRooms(rooms: ArrayList<ChatRoom>) {
         val token = userData?.getString("token")
@@ -138,5 +178,6 @@ class MessengerListActivity : AppCompatActivity() {
                 roomsArray.getJSONObject(i).getString("_id"),
             ))
         }
+        runOnUiThread { chatRoomsList?.adapter?.notifyDataSetChanged()}
     }
 }
