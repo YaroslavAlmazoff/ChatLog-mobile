@@ -35,9 +35,10 @@ class Utils {
     fun saveUserData(data: String, filesDir: File) {
         val id = JSONObject(data).getString("userId")
         val token = JSONObject(data).getString("token")
+        val refreshToken = JSONObject(data).getString("refreshToken")
         var user = URL(Constants().SITE_NAME + "user/" + id).readText(Charsets.UTF_8)
         var userWithToken = user.substring(0, user.length - 1)
-        userWithToken += ", \"token\": \"$token\" }"
+        userWithToken += ", \"token\": \"$token\", \"refreshToken\": \"$refreshToken\" }"
         Log.e("TAG", id)
         Log.e("TAG", userWithToken)
         val userFile = File(filesDir, userFileName)

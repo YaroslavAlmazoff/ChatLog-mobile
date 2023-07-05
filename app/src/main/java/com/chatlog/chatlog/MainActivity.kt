@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         anim.repeatMode = ValueAnimator.REVERSE
         anim.duration = 2000
         anim.start()
+        Log.e("TAG", "what")
         Log.e("TAG", user!!)
     }
     private fun checkToken() {
@@ -69,12 +70,13 @@ class MainActivity : AppCompatActivity() {
             try {
                 Log.e("TAG", userData.toString())
                 val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "refresh")
+                val refreshToken = userData?.getString("refreshToken")
+                val url = URL(Constants().SITE_NAME + "refresh-mobile")
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.setRequestProperty("Authorization", "Bearer $refreshToken")
                 var data: Int = connection.inputStream.read()
                 var result = ""
                 var byteArr = byteArrayOf()
