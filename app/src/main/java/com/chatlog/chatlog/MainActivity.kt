@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
                     byteArr.plus(data.toByte())
                     data = connection.inputStream.read()
                 }
+
                 Log.e("TAG", result)
                 if(!JSONObject(result).getBoolean("verified")) {
                     Utils().clearUserData(filesDir)
@@ -98,6 +99,7 @@ class MainActivity : AppCompatActivity() {
                         runHomeActivity()
                     }
                 }
+                Utils().saveUserData(result, filesDir)
             } catch (e: InterruptedException) {
                 Log.e("TAG", "Не удалось выполнить проверку")
             }

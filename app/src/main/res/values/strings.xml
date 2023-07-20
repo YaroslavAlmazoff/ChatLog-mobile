@@ -148,4 +148,17 @@
     <string name="left">Вы покинули беседу</string>
     <string name="removed">Беседа удалена</string>
     <string name="server_error">Возникла ошибка на стороне сервера. Попробуйте еще раз</string>
+
+    <string name="cloud_title">Облачное хранилище</string>
+    <string name="upload_file">Загрузить файлы</string>
+    <string name="create_folder">Создание папки</string>
+    <string name="folder_name_hint">Название папки</string>
+    <string name="download">Скачать</string>
+    <string name="send_link">Отправить ссылку на файл</string>
+    <string name="edit">Редактировать</string>
+    <string name="file_title">Файл</string>
+    <string name="file_name">Имя</string>
+    <string name="file_type">Тип</string>
+    <string name="file_size">Размер</string>
+    <string name="audio">Аудиозапись</string>
 </resources>

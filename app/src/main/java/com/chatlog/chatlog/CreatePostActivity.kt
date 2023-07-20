@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -56,6 +57,7 @@ class CreatePostActivity : AppCompatActivity() {
     var imageFile: File? = null
 
     private val GALERY_ADD_PHOTO = 1
+    @RequiresApi(33)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_post)
@@ -144,16 +146,47 @@ class CreatePostActivity : AppCompatActivity() {
     }
 
 
-    private fun uploadImage() {
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
-        } else {
-            listFiles()
-        }
+//    @RequiresApi(33)
+//    private fun uploadImage() {
+//        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
+//        } else {
+//            listFiles()
+//        }
+//    }
+//
+//    @RequiresApi(33)
+//    override fun onRequestPermissionsResult(requestCode: Int,
+//                                            permissions: Array<String>, grantResults: IntArray) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        Log.e("TAG", requestCode.toString())
+//        when (requestCode) {
+//            101 -> {
+//                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    listFiles()
+//                } else {
+//                    uploadImage()
+//                }
+//                return
+//            }
+//        }
+//    }
+//
+//    private fun listFiles() {
+//        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
+//        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
+//        pickImages?.visibility = View.VISIBLE
+//        greed?.adapter = ImagesAdapter(applicationContext)
+//    }
+private fun uploadImage() {
+    if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
+    } else {
+        listFiles()
     }
+}
 
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.e("TAG", requestCode.toString())
         when (requestCode) {
@@ -161,7 +194,7 @@ class CreatePostActivity : AppCompatActivity() {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     listFiles()
                 } else {
-                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
+                    uploadImage()
                 }
                 return
             }

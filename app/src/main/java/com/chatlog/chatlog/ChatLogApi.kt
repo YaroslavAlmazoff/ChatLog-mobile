@@ -1,5 +1,7 @@
 package com.chatlog.chatlog
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.json.JSONObject
@@ -80,5 +82,14 @@ interface ChatLogApi {
         @Path("id") id: String,
         @Part("title") title: String,
         @Part file: MultipartBody.Part?,
+    ): String
+
+    @Multipart
+    @POST("cloud/upload-mobile")
+    suspend fun uploadFile(
+        @Part file: List<MultipartBody.Part?>,
+        @Part("mobile") mobile: Boolean,
+        @Part("folder") folder: String,
+        @Header("Authorization") token: String
     ): String
 }

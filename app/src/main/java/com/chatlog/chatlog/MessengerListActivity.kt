@@ -142,9 +142,16 @@ class MessengerListActivity : AppCompatActivity() {
         connection.setRequestProperty("Accept-Charset", "utf-8")
         connection.setRequestProperty("Authorization", "Bearer $token")
 
-        val inputAsString = connection.inputStream.bufferedReader().use { it.readText() }
-        Log.e("TAG", inputAsString)
-        val roomsArray = JSONObject(inputAsString).getJSONArray("rooms")
+        var data: Int = connection.inputStream.read()
+        var result = ""
+        var byteArr = byteArrayOf()
+        while(data != -1) {
+            result += data.toChar().toString()
+            byteArr.plus(data.toByte())
+            data = connection.inputStream.read()
+        }
+        Log.e("TAG", result)
+        val roomsArray = JSONObject(result).getJSONArray("rooms")
         for(i in 0 until roomsArray.length()) {
             rooms.add(Room(
                 roomsArray.getJSONObject(i).getString("name"),
@@ -165,10 +172,15 @@ class MessengerListActivity : AppCompatActivity() {
         connection.setRequestProperty("Accept-Charset", "utf-8")
         connection.setRequestProperty("Authorization", "Bearer $token")
 
-        val inputAsString = connection.inputStream.bufferedReader().use { it.readText() }
-        Log.e("TAG", inputAsString)
-        val roomsArray = JSONObject(inputAsString).getJSONArray("rooms")
-        Log.e("TAG", inputAsString)
+        var data: Int = connection.inputStream.read()
+        var result = ""
+        var byteArr = byteArrayOf()
+        while(data != -1) {
+            result += data.toChar().toString()
+            byteArr.plus(data.toByte())
+            data = connection.inputStream.read()
+        }
+        val roomsArray = JSONObject(result).getJSONArray("rooms")
         for(i in 0 until roomsArray.length()) {
             rooms.add(ChatRoom(
                 roomsArray.getJSONObject(i).getString("name"),

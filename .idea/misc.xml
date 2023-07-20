@@ -4,15 +4,23 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/drawable/block.xml" value="0.1265" />
+        <entry key="app/src/main/res/drawable/blue_button.xml" value="0.254" />
+        <entry key="app/src/main/res/drawable/file_rounded.xml" value="0.16" />
+        <entry key="app/src/main/res/drawable/gradient.xml" value="0.206" />
         <entry key="app/src/main/res/drawable/message.xml" value="0.1265" />
         <entry key="app/src/main/res/drawable/my_message.xml" value="0.1265" />
+        <entry key="app/src/main/res/drawable/rounded.xml" value="0.16" />
+        <entry key="app/src/main/res/drawable/rounded_edit_text.xml" value="0.1755" />
         <entry key="app/src/main/res/drawable/search_field.xml" value="0.1265" />
         <entry key="app/src/main/res/layout/activity_add_members.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_adverts.xml" value="0.19794784095767423" />
         <entry key="app/src/main/res/layout/activity_chat_messenger.xml" value="0.2599401453612655" />
+        <entry key="app/src/main/res/layout/activity_cloud.xml" value="0.2736212056434374" />
+        <entry key="app/src/main/res/layout/activity_cloud_video.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_create_discussion.xml" value="0.24925181701581872" />
         <entry key="app/src/main/res/layout/activity_create_post.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_discussion_settings.xml" value="0.18359020852221214" />
+        <entry key="app/src/main/res/layout/activity_file.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.10614291684078563" />
         <entry key="app/src/main/res/layout/activity_images_test.xml" value="0.18676337262012693" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.25" />
@@ -27,8 +35,11 @@
         <entry key="app/src/main/res/layout/activity_update_profile.xml" value="0.2171868319794784" />
         <entry key="app/src/main/res/layout/activity_user.xml" value="0.2736212056434374" />
         <entry key="app/src/main/res/layout/add_member_item.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/file_item.xml" value="0.27276613937580163" />
         <entry key="app/src/main/res/layout/member_item.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/message.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/news_item.xml" value="0.26518585675430645" />
+        <entry key="app/src/main/res/layout/path_item.xml" value="0.27276613937580163" />
         <entry key="app/src/main/res/layout/room_item.xml" value="0.12787296280819055" />
         <entry key="app/src/main/res/layout/user_item.xml" value="0.1" />
       </map>

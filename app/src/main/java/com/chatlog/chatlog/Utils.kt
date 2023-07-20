@@ -1,13 +1,20 @@
 package com.chatlog.chatlog
 
+import android.app.DownloadManager
+import android.content.*
 import android.graphics.Color
+import android.net.Uri
+import android.os.Environment
+import android.provider.OpenableColumns
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import org.json.JSONObject
 import java.io.*
 import java.net.URL
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.floor
 
 class Utils {
     val userFileName = "user/user.txt"
@@ -37,6 +44,9 @@ class Utils {
         val token = JSONObject(data).getString("token")
         val refreshToken = JSONObject(data).getString("refreshToken")
         var user = URL(Constants().SITE_NAME + "user/" + id).readText(Charsets.UTF_8)
+        var user2 = JSONObject(data).getString("user")
+        Log.e("TAG", user)
+        Log.e("TAG", user2)
         var userWithToken = user.substring(0, user.length - 1)
         userWithToken += ", \"token\": \"$token\", \"refreshToken\": \"$refreshToken\" }"
         Log.e("TAG", id)
@@ -74,5 +84,69 @@ class Utils {
     }
     fun generateRandomNeonColor(): Int {
         return Color.parseColor(Constants().neonColors[Math.random().toInt()])
+    }
+
+    companion object {
+        fun downloadFile(name: String, url: String, context: Context, onComplete: () -> Unit) {
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val request = DownloadManager.Request(Uri.parse(url))
+            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+            request.setTitle("Загрузка файла")
+            request.setDescription("Скачивание файла")
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name)
+
+            val downloadId = downloadManager.enqueue(request)
+
+            val onCompleteReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                    if (id == downloadId) {
+                        onComplete()
+                        context?.unregisterReceiver(this)
+                    }
+                }
+            }
+
+            context.registerReceiver(onCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        }
+        fun shortName(text: String, limit: Int): String {
+            return if(text.length > limit) text.slice(0..limit) + "..."
+            else text
+        }
+        fun copyFile(inputStream: InputStream?, destinationFile: File) {
+            inputStream?.use { input ->
+                FileOutputStream(destinationFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+        fun getFileNameFromUri(context: Context, uri: Uri): String? {
+            val contentResolver: ContentResolver = context.contentResolver
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            var fileName: String? = null
+
+            cursor?.let {
+                if (it.moveToFirst()) {
+                    val displayNameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (displayNameColumnIndex != -1) {
+                        fileName = it.getString(displayNameColumnIndex)
+                    }
+                }
+                cursor.close()
+            }
+
+            return fileName
+        }
+        fun fileSize(size: Int?): String {
+            return if (size != null) {
+                return when(size) {
+                    in 1000..999999 -> ( floor((size / 1000).toDouble()) ).toString() + "Kb"
+                    in 1000000..999999999 -> ( floor((size / 1000000).toDouble()) ).toString() + "Mb"
+                    in 1000000000..30000000000 -> ( floor((size / 1000000000).toDouble()) ).toString() + "Gb"
+                    else -> "${size}b"
+                }
+            } else "0b"
+        }
     }
 }
