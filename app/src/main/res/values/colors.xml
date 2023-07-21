@@ -7,7 +7,7 @@
     <color name="gradient_end_color">#0f0f28</color>
     <color name="transparent_dark">#63000000</color>
     <color name="transparent_dark_ultra">#9C000000</color>
-    <color name="transparent_light">#99FFFFFF</color>
+    <color name="transparent_light">#8AFFFFFF</color>
     <color name="transparent">#80000000</color>
     <color name="light_neon_blue">#007DEF</color>
 

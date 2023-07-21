@@ -22,7 +22,7 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                    val activity: Activity,
                    val currentFolder: CurrentFolder,
                    val updatePath: () -> Unit,
-                   val showImage: (String) -> Unit) : RecyclerView.Adapter<FilesAdapter.ViewHolder>(), IFilter {
+                   val showImage: (String) -> Unit, val noFiles: TextView?) : RecyclerView.Adapter<FilesAdapter.ViewHolder>(), IFilter {
     private var filteredList = ArrayList(files)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -149,6 +149,13 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                 if (item.name.contains(query, ignoreCase = true)) {
                     filteredList.add(item)
                 }
+            }
+            if(filteredList.isEmpty()) {
+                noFiles?.visibility = View.VISIBLE
+                noFiles?.text = "Ваш запрос не дал результатов"
+            } else {
+                noFiles?.visibility = View.GONE
+                noFiles?.text = ""
             }
         }
         notifyDataSetChanged()

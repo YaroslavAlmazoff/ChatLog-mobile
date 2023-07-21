@@ -11,10 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,17 +50,64 @@ class CloudActivity : AppCompatActivity() {
     var userData: JSONObject? = null
     var pb: ProgressBar? = null
     var currentFolder = CurrentFolder("root", "")
+    var createFolderCancel: TextView? = null
 
     var files: ArrayList<File> = ArrayList()
     var file: File? = null
+
+    var noFiles: TextView? = null
 
     var filesAdapter: FilesAdapter? = null
 
     var folderField: EditText? = null
 
+    var searchField: SearchView? = null
+
+    var createFolderWrapper: View? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cloud)
+
+        searchField = findViewById(R.id.search_field)
+        noFiles = findViewById(R.id.no_files)
+
+        val initWidth = searchField?.width
+
+        searchField?.setOnSearchClickListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = initWidth!! + 500 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+        }
+        searchField?.setOnCloseListener {
+            val layoutParams = searchField?.layoutParams
+            layoutParams?.width = 140 // change this value to adjust the width
+            searchField?.layoutParams = layoutParams
+            return@setOnCloseListener false
+        }
+
+        searchField?.setOnQueryTextListener(object : SearchView.OnQueryTextListener, SearchView.OnSuggestionListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let {
+                    filesAdapter?.filter(it)
+                }
+                return true
+            }
+
+            override fun onSuggestionClick(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
+
+            override fun onSuggestionSelect(position: Int): Boolean {
+                Log.e("TAG", "chatlog")
+                return true
+            }
+        })
 
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
@@ -76,13 +120,19 @@ class CloudActivity : AppCompatActivity() {
 
         pb = findViewById(R.id.pb)
         folderField = findViewById(R.id.folder_name_field)
+        createFolderWrapper = findViewById(R.id.create_folder_wrapper)
+        createFolderCancel = findViewById(R.id.create_folder_cancel)
+
+        createFolderCancel?.setOnClickListener {
+            createFolderWrapper?.visibility = View.GONE
+        }
 
         filesAdapter = FilesAdapter(filesArray, applicationContext, this, currentFolder, {
             updatePath()
             getFiles()
         }, {
             showImage(it)
-        })
+        }, noFiles)
 
         filesList?.layoutManager = LinearLayoutManager(this)
         filesList?.adapter = filesAdapter
@@ -104,6 +154,9 @@ class CloudActivity : AppCompatActivity() {
         }
         findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.create_button).setOnClickListener {
             mkdir()
+        }
+        findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.create_folder_button).setOnClickListener {
+            createFolderWrapper?.visibility = View.VISIBLE
         }
 
         cancel?.setOnClickListener {
@@ -198,7 +251,19 @@ class CloudActivity : AppCompatActivity() {
                 reader.close()
                 connection.disconnect()
                 Log.e("TAG", result)
+                if(result.contains("verified")) {
+                    return@Thread
+                }
                 val files = JSONObject(result).getJSONArray("files")
+                if(files.length() == 0) {
+                    runOnUiThread {
+                        noFiles?.visibility = View.VISIBLE
+                        noFiles?.text = "У Вас пока нет файлов"
+                    }
+                } else {
+                    noFiles?.visibility = View.GONE
+                    noFiles?.text = ""
+                }
                 for(i in 0 until files.length()) {
                     filesArray.add(CloudFile(
                         files.getJSONObject(i).getString("name"),
@@ -228,6 +293,7 @@ class CloudActivity : AppCompatActivity() {
 
 
     private fun mkdir() {
+        createFolderWrapper?.visibility = View.GONE
         Thread {
             try {
                 val token = userData?.getString("token")
@@ -289,7 +355,25 @@ class CloudActivity : AppCompatActivity() {
     private fun openFileChooser() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "*/*"  // Допустимые типы файлов
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "video/mp4", "audio/mp3", "application/msword")) // Фильтр расширений
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+            "text/plain",
+            "image/jpeg",
+            "image/bmp",
+            "image/gif",
+            "image/jpg",
+            "image/png",
+            "video/mp4",
+            "audio/mp3",
+            "application/msword",
+            "application/vnd.ms-excel",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/pdf",
+            "application/x-pdf",
+            "application/vnd.android.package-archive"
+        ))
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) // Разрешить выбор нескольких файлов
         startActivityForResult(Intent.createChooser(intent, "Выберите файлы"), REQUEST_CODE)
     }
@@ -397,7 +481,7 @@ class CloudActivity : AppCompatActivity() {
     private fun prepareFilePart(i: Int): MultipartBody.Part? {
         val file = files[i]
         val type = URLConnection.guessContentTypeFromName(file.name)
-        val requestBody: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file!!)
+        val requestBody: RequestBody = RequestBody.create(type.toMediaTypeOrNull(), file!!)
         Log.e("TAG",  files[i]?.name!!)
         return MultipartBody.Part.createFormData("file$i", files[i]?.name, requestBody)
     }

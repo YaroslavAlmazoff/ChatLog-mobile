@@ -151,6 +151,7 @@
 
     <string name="cloud_title">Облачное хранилище</string>
     <string name="upload_file">Загрузить файлы</string>
+    <string name="create_dir">Создать папку</string>
     <string name="create_folder">Создание папки</string>
     <string name="folder_name_hint">Название папки</string>
     <string name="download">Скачать</string>
