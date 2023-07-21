@@ -8,6 +8,7 @@ import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.content.ContextCompat.getSystemService
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
 import java.net.URL
@@ -147,6 +148,25 @@ class Utils {
                     else -> "${size}b"
                 }
             } else "0b"
+        }
+        fun convertJsonToList(jsonArray: JSONArray): List<List<String>> {
+            val resultList: MutableList<MutableList<String>> = mutableListOf()
+
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val innerList: MutableList<String> = mutableListOf()
+
+                val keys = jsonObject.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val value = jsonObject.getString(key)
+                    innerList.add(value)
+                }
+
+                resultList.add(innerList)
+            }
+
+            return resultList
         }
     }
 }

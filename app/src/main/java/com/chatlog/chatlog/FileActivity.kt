@@ -12,10 +12,15 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.*
 import androidx.cardview.widget.CardView
 import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
@@ -42,12 +47,12 @@ class FileActivity : AppCompatActivity() {
     var playing: ImageView? = null
     var audioText: TextView? = null
     var playVideo: ImageView? = null
+    var excelContainer: View? = null
+    var presentationView: WebView? = null
 
     var videoWrapper: View? = null
 
     private lateinit var video: VideoView
-    private var isFullScreen = false
-    private var originalSystemUiVisibility = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +84,8 @@ class FileActivity : AppCompatActivity() {
         pauseAudio = findViewById(R.id.audio_pause)
         playing = findViewById(R.id.playing)
         audioText = findViewById(R.id.audio_text)
+        excelContainer = findViewById(R.id.excel_container)
+        presentationView = findViewById(R.id.presentation_view)
 
         findViewById<TextView>(R.id.file_name_value).text = name
         findViewById<TextView>(R.id.file_type_value).text = intent.getStringExtra("type")
@@ -91,6 +98,8 @@ class FileActivity : AppCompatActivity() {
         val pathArray = path?.split("/")
         val fullPath = Constants().SITE_NAME_FILES + "/" + pathArray?.slice(4 until pathArray.size)
             ?.joinToString("/")
+
+        Log.e("TAG", fullPath!!)
 
         download?.setOnClickListener {
             download?.text = "Скачивание...."
@@ -110,6 +119,7 @@ class FileActivity : AppCompatActivity() {
             Picasso.get().load(fullPath).into(image)
         } else if(ext == "mp4" || ext == "avi") {
             imageWrapper?.visibility = View.VISIBLE
+            playVideo?.visibility = View.VISIBLE
             val previewPath = Constants().SITE_NAME_FILES + "/filepreviews/${preview}"
             Log.e("TAG", previewPath)
             if(preview != null) {
@@ -133,6 +143,26 @@ class FileActivity : AppCompatActivity() {
         } else if(ext == "doc" || ext == "docx" || ext == "pdf") {
             text?.visibility = View.VISIBLE
             getTextInBackground(id!!, "hardtext")
+        } else if(ext == "xls" || ext == "xlsx") {
+            excelContainer?.visibility = View.VISIBLE
+            getExcel(id!!)
+        } else if(ext == "ppt" || ext == "pptx") {
+            presentationView?.visibility = View.VISIBLE
+            val webSettings: WebSettings = presentationView?.settings!!
+            webSettings.javaScriptEnabled = true
+            presentationView?.webChromeClient = WebChromeClient()
+            presentationView?.webViewClient = object : WebViewClient() {
+                override fun onReceivedError(
+                    view: WebView?,
+                    errorCode: Int,
+                    description: String?,
+                    failingUrl: String?
+                ) {
+                    Toast.makeText(applicationContext, "Error: $description", Toast.LENGTH_SHORT).show()
+                }
+            }
+            presentationView?.clearCache(true)
+            presentationView?.loadUrl(fullPath!!)
         } else {
             imageWrapper?.visibility = View.VISIBLE
             image?.setImageResource(resources.getIdentifier(ext, "drawable", packageName))
@@ -245,17 +275,7 @@ class FileActivity : AppCompatActivity() {
                 mediaPlayer?.start()
             }
         }
-//        stopAudio?.setOnClickListener {
-//            pauseAudio?.visibility = View.GONE
-//            startAudio?.visibility = View.VISIBLE
-//            playing?.visibility = View.GONE
-//            Log.e("TAG", "audio stopped")
-//            if (mediaPlayer?.isPlaying == true) {
-//                mediaPlayer?.stop()
-//                mediaPlayer?.reset()
-//                mediaPlayer?.release()
-//            }
-//        }
+
         pauseAudio?.setOnClickListener {
             pauseAudio?.visibility = View.GONE
             startAudio?.visibility = View.VISIBLE
@@ -267,41 +287,57 @@ class FileActivity : AppCompatActivity() {
         }
     }
 
-    fun playVideo(path: String) {
-        videoWrapper?.visibility = View.VISIBLE
-        val mediaController = MediaController(this)
-        mediaController.setAnchorView(video)
-        video?.setMediaController(mediaController)
-        video?.requestFocus()
-        video?.setVideoPath(path)
-        video?.start()
-        //toggleFullscreen(videoWrapper!!)
-    }
+    private fun getExcel(id: String) {
+        Thread {
+            try {
+                val token = userData?.getString("token")
+                var url = URL(Constants().SITE_NAME + "cloud/excel/${id}")
 
-    fun toggleFullscreen(view: View) {
-        if (!isFullScreen) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            supportActionBar?.hide()
-            originalSystemUiVisibility = window.decorView.systemUiVisibility
-            setSystemUiVisibility()
-            isFullScreen = true
-        } else {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            supportActionBar?.show()
-            window.decorView.systemUiVisibility = originalSystemUiVisibility
-            isFullScreen = false
-        }
-    }
+                val connection = url?.openConnection() as HttpsURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
 
-    private fun setSystemUiVisibility() {
-        window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                var line: String? = reader.readLine()
+                var result = ""
+
+                while (line != null) {
+                    result += line
+                    line = reader.readLine()
+                }
+
+                reader.close()
+                connection.disconnect()
+                Log.e("TAG", result)
+                val data = JSONObject(result).getJSONArray("data")
+                val err = JSONObject(result).getBoolean("err")
+                if(err) {
+                    Toast.makeText(this, "Не удалось прочитать файл. Попробуйте еще раз", Toast.LENGTH_SHORT).show()
+                } else {
+                    runOnUiThread {
+                        val tableLayout = TableLayout(this)
+                        val table = Utils.convertJsonToList(data)
+
+                        for (rowData in table) {
+                            val tableRow = TableRow(this)
+
+                            for (cellData in rowData) {
+                                val textView = TextView(this)
+                                textView.text = "$cellData "
+                                textView.setTextColor(resources.getColor(R.color.white))
+                                tableRow.addView(textView)
+                            }
+                            tableLayout.addView(tableRow)
+                        }
+                        findViewById<FrameLayout>(R.id.container).addView(tableLayout)
+                    }
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "Error")
+            }
+        }.start()
     }
 }
