@@ -111,6 +111,9 @@
             android:name=".ChatMessengerActivity"
             android:exported="true" />
         <activity
+            android:name=".RecipientsActivity"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

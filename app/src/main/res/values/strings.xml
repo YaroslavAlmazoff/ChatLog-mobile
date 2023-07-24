@@ -162,4 +162,14 @@
     <string name="file_type">Тип</string>
     <string name="file_size">Размер</string>
     <string name="audio">Аудиозапись</string>
+    <string name="search_cancel">Отменить поиск</string>
+
+    <string name="cloud_images">Изображения</string>
+    <string name="cloud_videos">Видео</string>
+    <string name="cloud_audios">Аудио</string>
+    <string name="cloud_documents">Документы</string>
+    <string name="cloud_other">Другое</string>
+    <string name="file_sent">Файл отправлен</string>
+    <string name="file_send_hint">Коснитесь тех, кому хотите отправить файл</string>
+    <string name="open_file">Открыть файл</string>
 </resources>

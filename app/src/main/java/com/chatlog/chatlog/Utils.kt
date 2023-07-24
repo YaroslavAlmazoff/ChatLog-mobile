@@ -88,7 +88,7 @@ class Utils {
     }
 
     companion object {
-        fun downloadFile(name: String, url: String, context: Context, onComplete: () -> Unit) {
+        fun downloadFile(name: String, url: String, context: Context, archiveUrl: String, onComplete: () -> Unit) {
             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val request = DownloadManager.Request(Uri.parse(url))
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
@@ -105,6 +105,16 @@ class Utils {
                     if (id == downloadId) {
                         onComplete()
                         context?.unregisterReceiver(this)
+                        if(archiveUrl != "") {
+                            Thread {
+                                try {
+                                    val data = URL(Constants().SITE_NAME + "delete-temp-file/$archiveUrl").readText(Charsets.UTF_8)
+                                    Log.e("TAG", data)
+                                } catch (e: InterruptedException) {
+                                    Log.e("TAG", "Error")
+                                }
+                            }.start()
+                        }
                     }
                 }
             }

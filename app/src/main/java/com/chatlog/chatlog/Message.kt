@@ -18,5 +18,6 @@ data class Message(var message: String,
                    var readThisMessage: JSONArray,
                    var uri: Uri?,
                    var videoUri: Uri?,
-                   var audioUri: Uri?
+                   var audioUri: Uri?,
+                   var fileLink: String?
 )

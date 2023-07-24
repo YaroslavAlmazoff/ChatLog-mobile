@@ -172,4 +172,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.sanojpunchihewa.glowbutton.GlowButton
+        android:id="@+id/open_button"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/blue_button"
+        android:padding="20dp"
+        android:text="@string/open_file"
+        android:textColor="@color/black"
+        android:textFontWeight="200"
+        android:textSize="15dp"
+        app:buttonColor="@color/neon_blue"
+        app:glowColor="@color/neon_blue" />
 </LinearLayout>

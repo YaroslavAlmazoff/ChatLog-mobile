@@ -154,6 +154,7 @@
                 android:orientation="vertical"
                 app:layout_constraintTop_toBottomOf="@id/file_info">
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/download_file"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="10dp">
@@ -167,7 +168,7 @@
                         android:layout_margin="10dp"
                         android:src="@drawable/download_file"/>
                     <TextView
-                        android:id="@+id/download_file"
+                        android:id="@+id/download_file_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="10pt"
@@ -182,6 +183,7 @@
                         app:layout_constraintStart_toEndOf="@id/download_file_icon" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/delete_file"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="10dp">
@@ -195,7 +197,7 @@
                         android:layout_margin="10dp"
                         android:src="@drawable/delete_file"/>
                     <TextView
-                        android:id="@+id/delete_file"
+                        android:id="@+id/delete_file_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="10pt"
@@ -210,6 +212,7 @@
                         app:layout_constraintStart_toEndOf="@id/delete_file_icon" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/send_file"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="10dp">
@@ -223,7 +226,7 @@
                         android:layout_margin="10dp"
                         android:src="@drawable/send_file_link"/>
                     <TextView
-                        android:id="@+id/send_file"
+                        android:id="@+id/send_file_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="10pt"
@@ -238,6 +241,7 @@
                         app:layout_constraintStart_toEndOf="@id/send_file_icon" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/send_file_link"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="10dp">
@@ -251,7 +255,7 @@
                         android:layout_margin="10dp"
                         android:src="@drawable/send_file"/>
                     <TextView
-                        android:id="@+id/send_file_link"
+                        android:id="@+id/send_file_link_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="10pt"
@@ -266,6 +270,7 @@
                         app:layout_constraintStart_toEndOf="@id/send_file_link_icon" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/edit_file"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="10dp">
@@ -279,7 +284,7 @@
                         android:layout_margin="10dp"
                         android:src="@drawable/edit_file"/>
                     <TextView
-                        android:id="@+id/edit_file"
+                        android:id="@+id/edit_file_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="10pt"
@@ -305,13 +310,44 @@
                 android:background="@color/transparent"
                 app:layout_constraintTop_toBottomOf="@+id/actions">
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/user_download"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="10dp"
+                    app:layout_constraintTop_toTopOf="parent">
+                    <ImageView
+                        android:id="@+id/user_download_icon"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:layout_margin="10dp"
+                        android:src="@drawable/download_file"/>
+                    <TextView
+                        android:id="@+id/user_download_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="10pt"
+                        android:textFontWeight="400"
+                        android:text="@string/download"
+                        android:textColor="@color/neon_blue"
+                        android:textAlignment="center"
+                        android:fontFamily="sans-serif-thin"
+                        android:layout_marginLeft="10dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/user_download_icon" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/image_wrapper"
                     android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
                     android:layout_margin="10dp"
                     android:background="@drawable/rounded"
-                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/user_download"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent">
@@ -346,7 +382,7 @@
                     android:textColor="@color/white"
                     android:textAlignment="textStart"
                     android:fontFamily="sans-serif-thin"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toBottomOf="@id/user_download" />
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:visibility="gone"
                     android:id="@+id/audio"
@@ -354,7 +390,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/user_download"
                     android:padding="5dp">
                     <ImageView
                         android:id="@+id/audio_start"

@@ -42,6 +42,7 @@ interface ChatLogApi {
         @Part file: MultipartBody.Part?,
         @Part videoFile: MultipartBody.Part?,
         @Part audioFile: MultipartBody.Part?,
+        @Part("fileLink") fileLink: RequestBody?,
         @Header("Authorization") token: String,
     ): String
 

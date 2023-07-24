@@ -1,6 +1,7 @@
 package com.chatlog.chatlog
 
 import android.R.attr.data
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -31,7 +32,8 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                       private var currentMessageId: String,
                       private var currentMessageText: String,
                       private var sendButton: ImageView,
-                      private var editButton: com.sanojpunchihewa.glowbutton.GlowButton) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IFilter {
+                      private var editButton: com.sanojpunchihewa.glowbutton.GlowButton,
+var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IFilter {
     private var filteredList = ArrayList<Message>(messages)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -193,6 +195,33 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         if(message.imageUrl == "") {
             holder?.image?.visibility = View.GONE
         }
+
+        if(message.fileLink != null && message.fileLink != "") {
+            holder.openButton?.visibility = View.VISIBLE
+            holder.openButton?.setOnClickListener {
+                Thread {
+                    try {
+                        val result = URL(Constants().SITE_NAME + "cloud/file/${message.fileLink}").readText(Charsets.UTF_8)
+                        val file = JSONObject(result).getJSONObject("file")
+                        val intent = Intent(it.context, FileActivity::class.java)
+                        intent.putExtra("name", file.getString("name"))
+                        intent.putExtra("type", file.getString("type"))
+                        intent.putExtra("size", file.getString("size"))
+                        intent.putExtra("path", file.getString("path"))
+                        intent.putExtra("id", file.getString("_id"))
+                        intent.putExtra("ext", file.getString("ext"))
+                        intent.putExtra("preview", file.getString("previewUrl"))
+                        intent.putExtra("owner", file.getString("owner"))
+                        intent.putExtra("public", file.getBoolean("public"))
+                        it.context.startActivity(intent)
+                    } catch (e: InterruptedException) {
+                        Log.e("TAG", "error")
+                    }
+                }.start()
+            }
+        } else {
+            holder.openButton?.visibility = View.GONE
+        }
     }
 
 
@@ -230,6 +259,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
         var stopAudio: ImageView? = null
         var audioPlaying: ImageView? = null
         var thumbnail: ImageView? = null
+        var openButton: com.sanojpunchihewa.glowbutton.GlowButton
 
         init {
             name = itemView.findViewById(R.id.message_name)
@@ -247,6 +277,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
             stopAudio = itemView.findViewById(R.id.stop_audio)
             audioPlaying = itemView.findViewById(R.id.audio_playing)
             thumbnail = itemView.findViewById(R.id.thumbnail)
+            openButton = itemView.findViewById(R.id.open_button)
         }
     }
     fun deleteMessageInBackground(id: String, position: Int) {

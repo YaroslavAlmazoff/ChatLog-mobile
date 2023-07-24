@@ -52,21 +52,6 @@ class PeopleAdapter(private val people: ArrayList<User>, private val userData: J
     private fun createRoom(id: String, context: Context) {
         Thread {
             try {
-//                val url = URL(Constants().SITE_NAME + "createroom/$id")
-//                val connection = url.openConnection() as HttpsURLConnection
-//                connection.requestMethod = "GET"
-//                connection.doOutput = true
-//                connection.setRequestProperty("Content-Type", "application/json")
-//                connection.setRequestProperty("Accept-Charset", "utf-8")
-//                connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
-//                var data: Int = connection.inputStream.read()
-//                var result = ""
-//                var byteArr = byteArrayOf()
-//                while(data != -1) {
-//                    result += data.toChar().toString()
-//                    byteArr.plus(data.toByte())
-//                    data = connection.inputStream.read()
-//                }
                 val result = URL(Constants().SITE_NAME + "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/$id").readText(Charsets.UTF_8)
                 Log.e("TAG", result)
                 activity.runOnUiThread {

@@ -56,20 +56,24 @@ class CloudActivity : AppCompatActivity() {
     var file: File? = null
 
     var noFiles: TextView? = null
-
     var filesAdapter: FilesAdapter? = null
-
     var folderField: EditText? = null
-
     var searchField: SearchView? = null
-
+    var sort: ImageView? = null
+    var sortMenu: View? = null
     var createFolderWrapper: View? = null
+    var searchCancel: TextView? = null
+
+    var searchString: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cloud)
 
         searchField = findViewById(R.id.search_field)
+        sort = findViewById(R.id.sort)
+        sortMenu = findViewById(R.id.sort_menu)
+        searchCancel = findViewById(R.id.search_cancel)
         noFiles = findViewById(R.id.no_files)
 
         val initWidth = searchField?.width
@@ -86,15 +90,55 @@ class CloudActivity : AppCompatActivity() {
             return@setOnCloseListener false
         }
 
+        sort?.setOnClickListener {
+            if(sortMenu?.visibility == View.GONE) {
+                sortMenu?.visibility = View.VISIBLE
+            } else {
+                sortMenu?.visibility = View.GONE
+                getFiles("", null)
+            }
+
+        }
+
+
+        findViewById<View>(R.id.sort_images).setOnClickListener {
+            getFiles("sort", "images")
+        }
+        findViewById<View>(R.id.sort_videos).setOnClickListener {
+            getFiles("sort", "videos")
+        }
+        findViewById<View>(R.id.sort_audios).setOnClickListener {
+            getFiles("sort", "audios")
+        }
+        findViewById<View>(R.id.sort_documents).setOnClickListener {
+            getFiles("sort", "documents")
+        }
+        findViewById<View>(R.id.sort_other).setOnClickListener {
+            getFiles("sort", "other")
+        }
+
+
+
+        searchCancel?.setOnClickListener {
+            searchString = ""
+            getFiles("", null)
+            searchCancel?.visibility = View.GONE
+        }
+
         searchField?.setOnQueryTextListener(object : SearchView.OnQueryTextListener, SearchView.OnSuggestionListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
+                if(query != null) {
+                    searchString = query
+                    getFiles("search", null)
+                }
+                searchCancel?.visibility = View.VISIBLE
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.let {
-                    filesAdapter?.filter(it)
-                }
+//                newText?.let {
+//                    filesAdapter?.filter(it)
+//                }
                 return true
             }
 
@@ -108,6 +152,8 @@ class CloudActivity : AppCompatActivity() {
                 return true
             }
         })
+
+
 
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
@@ -129,10 +175,10 @@ class CloudActivity : AppCompatActivity() {
 
         filesAdapter = FilesAdapter(filesArray, applicationContext, this, currentFolder, {
             updatePath()
-            getFiles()
+            getFiles("", null)
         }, {
             showImage(it)
-        }, noFiles)
+        }, noFiles, userData!!)
 
         filesList?.layoutManager = LinearLayoutManager(this)
         filesList?.adapter = filesAdapter
@@ -140,12 +186,12 @@ class CloudActivity : AppCompatActivity() {
         pathList?.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         pathList?.adapter = PathAdapter(pathArray, currentFolder) {
             updatePath()
-            getFiles()
+            getFiles("", null)
         }
 
         pathArray?.add(PathItem("root"))
 
-        getFiles()
+        getFiles("", null)
 
         filesAdapter?.filter("")
 
@@ -220,13 +266,16 @@ class CloudActivity : AppCompatActivity() {
 
     }
 
-    private fun getFiles() {
+    private fun getFiles(mode: String, type: String?) {
         Thread {
             try {
                 filesArray?.clear()
                 Log.e("TAG", currentFolder.name)
                 val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "cloud/filesbyfolder")
+                val url =
+                    if (mode == "search") URL(Constants().SITE_NAME + "cloud/filesbysearch")
+                    else if(mode == "sort") URL(Constants().SITE_NAME + "cloud/sortedfiles")
+                    else URL(Constants().SITE_NAME + "cloud/filesbyfolder")
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = "POST"
                 connection.doOutput = true
@@ -234,7 +283,13 @@ class CloudActivity : AppCompatActivity() {
                 connection.setRequestProperty("Accept-Charset", "utf-8")
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
-                val json = "{\"name\": \"${currentFolder.name}\"}"
+                var fileType = ""
+
+                if(type != null) {
+                    fileType = type
+                }
+
+                val json = "{\"name\": \"${currentFolder.name}\", \"search\": \"${searchString}\", \"sort\": \"$fileType\"}"
                 Log.e("TAG", json)
                 connection.outputStream.write(json.toByteArray())
 
@@ -258,11 +313,15 @@ class CloudActivity : AppCompatActivity() {
                 if(files.length() == 0) {
                     runOnUiThread {
                         noFiles?.visibility = View.VISIBLE
-                        noFiles?.text = "У Вас пока нет файлов"
+                        if(mode == "search") noFiles?.text = "Ваш запрос не дал результатов"
+                        if(mode == "sort") noFiles?.text = "Таких файлов здесь пока нет"
+                        else noFiles?.text = "У Вас пока нет файлов"
                     }
                 } else {
-                    noFiles?.visibility = View.GONE
-                    noFiles?.text = ""
+                    runOnUiThread {
+                        noFiles?.visibility = View.GONE
+                        noFiles?.text = ""
+                    }
                 }
                 for(i in 0 until files.length()) {
                     filesArray.add(CloudFile(
@@ -372,7 +431,8 @@ class CloudActivity : AppCompatActivity() {
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/pdf",
             "application/x-pdf",
-            "application/vnd.android.package-archive"
+            "application/vnd.android.package-archive",
+            "application/zip", "application/octet-stream", "application/x-zip-compressed", "multipart/x-zip"
         ))
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) // Разрешить выбор нескольких файлов
         startActivityForResult(Intent.createChooser(intent, "Выберите файлы"), REQUEST_CODE)
@@ -480,13 +540,13 @@ class CloudActivity : AppCompatActivity() {
 
     private fun prepareFilePart(i: Int): MultipartBody.Part? {
         val file = files[i]
-        val type = URLConnection.guessContentTypeFromName(file.name)
+        var type = URLConnection.guessContentTypeFromName(file.name)
+        if(type == null) {
+            type = "multipart/form-data"
+        }
         val requestBody: RequestBody = RequestBody.create(type.toMediaTypeOrNull(), file!!)
         Log.e("TAG",  files[i]?.name!!)
         return MultipartBody.Part.createFormData("file$i", files[i]?.name, requestBody)
-    }
-    private fun preparePart(i: Int): RequestBody {
-        return RequestBody.create("text/plain".toMediaTypeOrNull(), files[i].name)
     }
 
     private fun showImage(src: String) {
@@ -499,12 +559,34 @@ class CloudActivity : AppCompatActivity() {
         fullScreenImage?.setImageURI(Uri.parse(""))
     }
 
-    private fun toggleOrientation() {
-        val currentOrientation: Int = resources.configuration.orientation
-        requestedOrientation = if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
+    private fun sort(type: String) {
+        Thread {
+            try {
+                val token = userData?.getString("token")
+                val url = URL(Constants().SITE_NAME + "cloud/sortedfiles/$type")
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                var line: String? = reader.readLine()
+                var result = ""
+
+                while (line != null) {
+                    result += line
+                    line = reader.readLine()
+                }
+
+                reader.close()
+                connection.disconnect()
+                Log.e("TAG", result)
+
+            } catch (e: InterruptedException) {
+                Log.e("TAG", "Error")
+            }
+        }.start()
     }
 }

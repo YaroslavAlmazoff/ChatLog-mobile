@@ -32,11 +32,18 @@ import javax.net.ssl.HttpsURLConnection
 class FileActivity : AppCompatActivity() {
     var userData: JSONObject? = null
 
-    var download: TextView? = null
-    var delete: TextView? = null
-    var send: TextView? = null
-    var sendLink: TextView? = null
-    var edit: TextView? = null
+    var download: View? = null
+    var downloadText: TextView? = null
+
+    var delete: View? = null
+    var deleteText: TextView? = null
+
+    var userDownload: View? = null
+    var userDownloadText: TextView? = null
+
+    var send: View? = null
+    var sendLink: View? = null
+    var edit: View? = null
 
     var text: TextView? = null
     var image: ImageView? = null
@@ -65,6 +72,21 @@ class FileActivity : AppCompatActivity() {
         val id = intent.getStringExtra("id")
         val ext = intent.getStringExtra("ext")!!
         val preview = intent.getStringExtra("preview")!!
+        val owner = intent.getStringExtra("owner")!!
+        val public = intent.getBooleanExtra("public", false)
+
+        userDownload = findViewById(R.id.user_download)
+
+        if(owner != userData?.getJSONObject("user")?.getString("_id")) {
+            if(public) {
+                findViewById<View>(R.id.actions).visibility = View.GONE
+                userDownload?.visibility = View.VISIBLE
+            } else {
+                val intent = Intent(this, CloudActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
 
         video = findViewById(R.id.video)
         videoWrapper = findViewById(R.id.fullscreen)
@@ -75,6 +97,10 @@ class FileActivity : AppCompatActivity() {
         send = findViewById(R.id.send_file)
         sendLink = findViewById(R.id.send_file_link)
         edit = findViewById(R.id.edit_file)
+
+        userDownloadText = findViewById(R.id.user_download_text)
+        downloadText = findViewById(R.id.download_file_text)
+        deleteText = findViewById(R.id.delete_file_text)
 
         text = findViewById(R.id.text)
         image = findViewById(R.id.image)
@@ -102,17 +128,38 @@ class FileActivity : AppCompatActivity() {
         Log.e("TAG", fullPath!!)
 
         download?.setOnClickListener {
-            download?.text = "Скачивание...."
+            downloadText?.text = "Скачивание...."
             Log.e("TAG", "DOWNLOAD")
             Utils.downloadFile(name!!,
-                fullPath, it.context) {
-                download?.text = "Скачано в папку DOWNLOADS"
+                fullPath, it.context, "") {
+                downloadText?.text = "Скачано в папку DOWNLOADS"
                 download?.setOnClickListener {  }
             }
         }
+        userDownload?.setOnClickListener {
+            userDownloadText?.text = "Скачивание...."
+            Log.e("TAG", "DOWNLOAD")
+            Utils.downloadFile(name!!,
+                fullPath, it.context, "") {
+                userDownloadText?.text = "Скачано в папку DOWNLOADS"
+                userDownload?.setOnClickListener {  }
+            }
+        }
         delete?.setOnClickListener {
-            delete?.text = "Удаление..."
+            deleteText?.text = "Удаление..."
             deleteInBackground(id!!)
+        }
+        send?.setOnClickListener {
+            val intent = Intent(this, RecipientsActivity::class.java)
+            intent.putExtra("file", id)
+            startActivity(intent)
+        }
+        sendLink?.setOnClickListener {
+            val intent = Intent(this, RecipientsActivity::class.java)
+            intent.putExtra("file", id)
+            intent.putExtra("name", name)
+            intent.putExtra("link", true)
+            startActivity(intent)
         }
         if(ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "gif" || ext == "bmp") {
             imageWrapper?.visibility = View.VISIBLE

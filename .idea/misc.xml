@@ -31,6 +31,7 @@
         <entry key="app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_not_activated.xml" value="0.165" />
         <entry key="app/src/main/res/layout/activity_people.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/activity_recipients.xml" value="0.1985494106980961" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_update_profile.xml" value="0.2171868319794784" />
         <entry key="app/src/main/res/layout/activity_user.xml" value="0.2736212056434374" />
@@ -40,6 +41,7 @@
         <entry key="app/src/main/res/layout/message.xml" value="0.25" />
         <entry key="app/src/main/res/layout/news_item.xml" value="0.26518585675430645" />
         <entry key="app/src/main/res/layout/path_item.xml" value="0.27276613937580163" />
+        <entry key="app/src/main/res/layout/recipient_item.xml" value="0.1985494106980961" />
         <entry key="app/src/main/res/layout/room_item.xml" value="0.12787296280819055" />
         <entry key="app/src/main/res/layout/user_item.xml" value="0.1" />
       </map>

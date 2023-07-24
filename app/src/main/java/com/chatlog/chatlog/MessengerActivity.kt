@@ -270,7 +270,7 @@ class MessengerActivity : AppCompatActivity() {
 
         pb = findViewById(R.id.pb)
         messagesArray = ArrayList()
-        adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!)
+        adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!, this)
         sendImg?.setOnClickListener {
             sendMessageInBackground()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -285,6 +285,12 @@ class MessengerActivity : AppCompatActivity() {
 
         adapter?.filter("")
         startEventSource()
+
+        if(intent.getStringExtra("file") != null) {
+            messageField?.setText("${intent.getStringExtra("name")}")
+            sendMessage2()
+        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -405,7 +411,7 @@ class MessengerActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getString("videoUrl"),
                 usersArray.getJSONObject(i).getString("audioUrl"),
                 usersArray.getJSONObject(i).getJSONArray("readedThisMessage"),
-                null, null, null
+                null, null, null, usersArray.getJSONObject(i).getString("fileLink"),
             ))
         }
         runOnUiThread {
@@ -466,6 +472,11 @@ class MessengerActivity : AppCompatActivity() {
         val message = RequestBody.create("text/plain".toMediaTypeOrNull(), messageField?.text?.toString()!!)
         val date = RequestBody.create("text/plain".toMediaTypeOrNull(), Utils().getCurrentDateAndTime())
 
+        var fileLink: RequestBody? = null
+        if(intent.getStringExtra("file") != null) {
+            fileLink = RequestBody.create("text/plain".toMediaTypeOrNull(), intent.getStringExtra("file")!!)
+        }
+
         if(imageFile != null) {
             requestFile1 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
             body1 = MultipartBody.Part.createFormData("file", imageFile?.name, requestFile1)
@@ -489,7 +500,7 @@ class MessengerActivity : AppCompatActivity() {
                     message,
                     date,
                     isFile,
-                    body1, body2, body3, "Bearer $token"
+                    body1, body2, body3,  fileLink,"Bearer $token"
                 )
             }
         } catch(e: IllegalStateException) {
@@ -539,7 +550,7 @@ class MessengerActivity : AppCompatActivity() {
                 message.getString("videoUrl"),
                 message.getString("audioUrl"),
                 message.getJSONArray("readedThisMessage"),
-                    null, null, null
+                    null, null, null, message.getString("fileLink")
                 ))
             messagesArray?.forEach {
                 Log.e("TAG", it.message)

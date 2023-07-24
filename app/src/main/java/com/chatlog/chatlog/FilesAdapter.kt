@@ -14,7 +14,13 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import java.util.*
+import javax.net.ssl.HttpsURLConnection
 
 
 class FilesAdapter(private val files: ArrayList<CloudFile>,
@@ -22,7 +28,9 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                    val activity: Activity,
                    val currentFolder: CurrentFolder,
                    val updatePath: () -> Unit,
-                   val showImage: (String) -> Unit, val noFiles: TextView?) : RecyclerView.Adapter<FilesAdapter.ViewHolder>(), IFilter {
+                   val showImage: (String) -> Unit,
+                   val noFiles: TextView?,
+                   val userData: JSONObject) : RecyclerView.Adapter<FilesAdapter.ViewHolder>(), IFilter {
     private var filteredList = ArrayList(files)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -34,6 +42,30 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val file = files[position]
         holder.name?.text = Utils.shortName(file.name, 20)
+
+        if(file.type != "folder") {
+            holder.download?.setOnClickListener {
+                holder.download?.text = "Скачивание...."
+                Log.e("TAG", "DOWNLOAD")
+                val pathArray = file.path.split("/")
+                Utils.downloadFile(file.name,
+                    Constants().SITE_NAME_FILES + "/" + pathArray.slice(4 until pathArray.size).joinToString("/"),
+                    it.context, "") {
+                    holder?.download?.text = "Скачано в папку DOWNLOADS"
+                    holder?.download?.setOnClickListener {  }
+                }
+            }
+        } else {
+            holder.download?.setOnClickListener {
+                holder.download?.text = "Скачивание...."
+                downloadFolder(file.id, file.name) {
+                    holder?.download?.text = "Скачано в папку DOWNLOADS"
+                    holder?.download?.setOnClickListener {  }
+                }
+            }
+        }
+
+
         Thread {
             try {
                 var path = ""
@@ -94,7 +126,6 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                 }
                 if(file.type == "folder") {
                     activity.runOnUiThread {
-                        holder.download?.visibility = View.GONE
                         holder.root?.setOnClickListener {
                             currentFolder.name = file.name
                             updatePath()
@@ -118,21 +149,49 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                 intent.putExtra("id", file.id)
                 intent.putExtra("ext", file.ext)
                 intent.putExtra("preview", file.previewUrl)
+                intent.putExtra("owner", file.owner)
+                intent.putExtra("public", file.public)
                 it.context.startActivity(intent)
             }
         }
+    }
 
-        holder.download?.setOnClickListener {
-            holder.download?.text = "Скачивание...."
-            Log.e("TAG", "DOWNLOAD")
-            val pathArray = file.path.split("/")
-            Utils.downloadFile(file.name,
-                Constants().SITE_NAME_FILES + "/" + pathArray.slice(4 until pathArray.size).joinToString("/"),
-            it.context) {
-                holder?.download?.text = "Скачано в папку DOWNLOADS"
-                holder?.download?.setOnClickListener {  }
+    fun downloadFolder(id: String, name: String, onComplete: () -> Unit) {
+        Thread {
+            try {
+                val token = userData?.getString("token")
+                val url = URL(Constants().SITE_NAME + "cloud/download-folder/$id")
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                var line: String? = reader.readLine()
+                var result = ""
+
+                while (line != null) {
+                    result += line
+                    line = reader.readLine()
+                }
+
+                reader.close()
+                connection.disconnect()
+                Log.e("TAG", result)
+                val archiveUrl = JSONObject(result).getString("archiveUrl")
+                if(archiveUrl != "") {
+                    val archivePath = Constants().SITE_NAME_FILES + "/temp/$archiveUrl"
+                    Log.e("TAG", archivePath)
+                    Utils.downloadFile(name, archivePath, context, archiveUrl) {
+                        onComplete()
+                    }
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", e.message!!)
             }
-        }
+        }.start()
     }
 
 
