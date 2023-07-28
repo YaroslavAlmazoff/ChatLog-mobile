@@ -66,9 +66,6 @@ interface ChatLogApi {
         @Part file: MultipartBody.Part?,
     ): String
 
-    @GET("last-message-mobile/{id}")
-    suspend fun getLastMessage(@Path("id") id: String): Message
-
     @Multipart
     @POST("createchatroom")
     suspend fun createDiscussion(
@@ -90,7 +87,11 @@ interface ChatLogApi {
     suspend fun uploadFile(
         @Part file: List<MultipartBody.Part?>,
         @Part("mobile") mobile: Boolean,
-        @Part("folder") folder: String,
+        @Part("folderId") folderId: RequestBody,
+        @Part("folderName") folderName: RequestBody,
+        @Part("names") names: StringArray,
         @Header("Authorization") token: String
     ): String
+
+
 }

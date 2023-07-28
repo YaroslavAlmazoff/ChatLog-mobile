@@ -63,6 +63,26 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                     holder?.download?.setOnClickListener {  }
                 }
             }
+
+            holder.root?.setOnLongClickListener {
+                holder.delete?.visibility = View.VISIBLE
+                holder.cancel?.visibility = View.VISIBLE
+                true
+            }
+            holder.image?.setOnLongClickListener {
+                holder.delete?.visibility = View.VISIBLE
+                holder.cancel?.visibility = View.VISIBLE
+                true
+            }
+        }
+
+        holder.delete?.setOnClickListener {
+            deleteFile(file.id)
+        }
+
+        holder.cancel?.setOnClickListener {
+            holder.delete?.visibility = View.GONE
+            holder.cancel?.visibility = View.GONE
         }
 
 
@@ -128,6 +148,7 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                     activity.runOnUiThread {
                         holder.root?.setOnClickListener {
                             currentFolder.name = file.name
+                            currentFolder.id = file.id
                             updatePath()
                         }
                     }
@@ -194,6 +215,45 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
         }.start()
     }
 
+    private fun deleteFile(id: String) {
+        Thread {
+            try {
+                val token = userData?.getString("token")
+                val url = URL(Constants().SITE_NAME + "cloud/rmdir/${id}")
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = "DELETE"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                var line: String? = reader.readLine()
+                var result = ""
+
+                while (line != null) {
+                    result += line
+                    line = reader.readLine()
+                }
+
+                reader.close()
+                connection.disconnect()
+                Log.e("TAG", result)
+                val response = JSONObject(result).getBoolean("deleted")
+                activity.runOnUiThread {
+                    if(!response) {
+                        Toast.makeText(context, "Не удалось. Попробуйте еще раз", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Удалено", Toast.LENGTH_SHORT).show()
+                        activity.startActivity(Intent(context, CloudActivity::class.java))
+                    }
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "Error")
+            }
+        }.start()
+    }
+
 
     override fun getItemCount(): Int {
         return filteredList.size
@@ -224,6 +284,8 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
         var name: TextView? = null
         var image: ImageView? = null
         var download: TextView? = null
+        var delete: TextView? = null
+        var cancel: TextView? = null
         var card: View? = null
         var root: View? = null
 
@@ -231,6 +293,8 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
             name = itemView.findViewById(R.id.file_name)
             image = itemView.findViewById(R.id.file_icon)
             download = itemView.findViewById(R.id.file_download)
+            delete = itemView.findViewById(R.id.file_delete)
+            cancel = itemView.findViewById(R.id.file_cancel)
             card = itemView.findViewById(R.id.file_image_wrapper)
             root = itemView
         }

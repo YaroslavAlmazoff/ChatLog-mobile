@@ -189,7 +189,7 @@ class CloudActivity : AppCompatActivity() {
             getFiles("", null)
         }
 
-        pathArray?.add(PathItem("root"))
+        pathArray?.add(PathItem("root", ""))
 
         getFiles("", null)
 
@@ -224,7 +224,7 @@ class CloudActivity : AppCompatActivity() {
                     connection.setRequestProperty("Accept-Charset", "utf-8")
                     connection.setRequestProperty("Authorization", "Bearer $token")
 
-                    val json = "{\"name\": \"${currentFolder.name}\"}"
+                    val json = "{\"id\": \"${currentFolder.id}\"}"
                     Log.e("TAG", json)
                     connection.outputStream.write(json.toByteArray())
 
@@ -243,9 +243,9 @@ class CloudActivity : AppCompatActivity() {
                     Log.e("TAG", result)
                     val pathArr = JSONObject(result).getJSONArray("path")
                     Log.e("TAG", "названия папок Json")
-                    pathArray.add(PathItem("root"))
+                    pathArray.add(PathItem("root", ""))
                     for(i in 0 until pathArr.length()) {
-                        pathArray.add(PathItem(pathArr.getString(i)))
+                        pathArray.add(PathItem(pathArr.getJSONObject(i).getString("name"), pathArr.getJSONObject(i).getString("id")))
                         Log.e("TAG", pathArr.getString(i))
                     }
                     Log.e("TAG", "названия папок array")
@@ -260,7 +260,7 @@ class CloudActivity : AppCompatActivity() {
                 }
             }.start()
         } else {
-            pathArray.add(PathItem(currentFolder.name))
+            pathArray.add(PathItem(currentFolder.name, ""))
             pathList?.adapter?.notifyDataSetChanged()
         }
 
@@ -289,7 +289,7 @@ class CloudActivity : AppCompatActivity() {
                     fileType = type
                 }
 
-                val json = "{\"name\": \"${currentFolder.name}\", \"search\": \"${searchString}\", \"sort\": \"$fileType\"}"
+                val json = "{\"id\": \"${currentFolder.id}\", \"search\": \"${searchString}\", \"sort\": \"$fileType\"}"
                 Log.e("TAG", json)
                 connection.outputStream.write(json.toByteArray())
 
@@ -364,7 +364,7 @@ class CloudActivity : AppCompatActivity() {
                 connection.setRequestProperty("Accept-Charset", "utf-8")
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
-                val json = "{\"folder\": \"${currentFolder.name}\", \"folderId\": \"${currentFolder.id}\", \"name\": \"${folderField?.text}\"}"
+                val json = "{\"folderId\": \"${currentFolder.id}\", \"name\": \"${folderField?.text}\"}"
                 Log.e("TAG", json)
                 connection.outputStream.write(json.toByteArray())
 
@@ -459,6 +459,7 @@ class CloudActivity : AppCompatActivity() {
                 val uri = data.data!!
                 val inputStream = this.contentResolver.openInputStream(uri)
                 val fileName = Utils.getFileNameFromUri(this, uri)
+                Log.e("TAG", fileName!!)
                 val destinationFile = File(destinationFolder, fileName)
                 Utils.copyFile(inputStream, destinationFile)
                 files.add(destinationFile)
@@ -487,18 +488,27 @@ class CloudActivity : AppCompatActivity() {
 
                 val parts: ArrayList<MultipartBody.Part> = ArrayList()
 
+                val names = ArrayList<String>()
+
                 for(i in 0 until files?.size!!) {
                     parts.add(prepareFilePart(i)!!)
                     Log.e("TAG", files[i]?.name!!)
+                    names.add(files[i]?.name!!)
                 }
 
+                var stringArray = StringArray(names)
 
-                val folder = "{\"id\": \"${currentFolder.id}\", \"name\": \"${currentFolder.name}\"}"
+
+                Log.e("TAG", currentFolder.id)
+                Log.e("TAG", currentFolder.name)
+
+                var folderId = RequestBody.create("text/plain".toMediaTypeOrNull(), currentFolder.id)
+                var folderName = RequestBody.create("text/plain".toMediaTypeOrNull(), currentFolder.name)
 
                 try {
                     CoroutineScope(Dispatchers.IO).launch {
                         val response = chatLogApi.uploadFile(
-                            parts, true, folder, "Bearer $token"
+                            parts, true, folderId, folderName, stringArray,"Bearer $token"
                         )
                         Log.e("TAG", response)
                         val filesJSON = JSONObject(response).getJSONArray("files")

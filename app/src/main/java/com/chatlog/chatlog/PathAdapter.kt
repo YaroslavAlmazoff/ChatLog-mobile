@@ -28,6 +28,7 @@ class PathAdapter(private val path: ArrayList<PathItem>, private val currentFold
         holder.name?.text = folder.name
         holder.name?.setOnClickListener {
             currentFolder.name = folder.name
+            currentFolder.id = folder.id
             updateFolder()
         }
     }
