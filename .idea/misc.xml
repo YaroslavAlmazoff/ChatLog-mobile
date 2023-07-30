@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
@@ -21,6 +20,7 @@
         <entry key="app/src/main/res/layout/activity_create_post.xml" value="0.26079521162890124" />
         <entry key="app/src/main/res/layout/activity_discussion_settings.xml" value="0.18359020852221214" />
         <entry key="app/src/main/res/layout/activity_file.xml" value="0.26079521162890124" />
+        <entry key="app/src/main/res/layout/activity_games.xml" value="0.2736212056434374" />
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.10614291684078563" />
         <entry key="app/src/main/res/layout/activity_images_test.xml" value="0.18676337262012693" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.25" />
@@ -48,5 +48,5 @@
     </option>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="jbr-17" project-jdk-type="JavaSDK" />
 </project>

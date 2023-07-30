@@ -24,6 +24,9 @@
         android:theme="@style/Theme.ChatLog"
         tools:targetApi="33">
         <activity
+            android:name=".GameActivity"
+            android:exported="false" />
+        <activity
             android:name=".CloudVideoActivity"
             android:exported="false" />
         <activity

@@ -172,4 +172,5 @@
     <string name="file_sent">Файл отправлен</string>
     <string name="file_send_hint">Коснитесь тех, кому хотите отправить файл</string>
     <string name="open_file">Открыть файл</string>
+    <string name="downloaded">Приложение загружено</string>
 </resources>

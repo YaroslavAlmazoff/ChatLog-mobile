@@ -9,6 +9,7 @@
     <color name="transparent_dark_ultra">#9C000000</color>
     <color name="transparent_light">#8AFFFFFF</color>
     <color name="transparent">#80000000</color>
+    <color name="transparent_middle">#34000000</color>
     <color name="light_neon_blue">#007DEF</color>
 
     <color name="violet_neon">#9A38D6</color>
