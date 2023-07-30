@@ -173,4 +173,7 @@
     <string name="file_send_hint">Коснитесь тех, кому хотите отправить файл</string>
     <string name="open_file">Открыть файл</string>
     <string name="downloaded">Приложение загружено</string>
+    <string name="open_write_review">Написать отзыв</string>
+    <string name="write_review_hint">Напишите ваше мнение о приложении</string>
+    <string name="write_review_cancel">Закрыть поле ввода</string>
 </resources>

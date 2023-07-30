@@ -51,7 +51,7 @@
                 android:text=""
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/navy_neon"
+                android:textColor="@color/white"
                 android:textSize="6pt"
                 android:fontFamily="sans-serif-thin"
                 android:textFontWeight="200"
