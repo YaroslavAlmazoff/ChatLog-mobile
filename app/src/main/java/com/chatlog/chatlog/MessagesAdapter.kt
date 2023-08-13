@@ -201,7 +201,7 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
             holder.openButton?.setOnClickListener {
                 Thread {
                     try {
-                        val result = URL(Constants().SITE_NAME + "cloud/file/${message.fileLink}").readText(Charsets.UTF_8)
+                        val result = Utils.request(it.context, "cloud/file/${message.fileLink}", "GET", false, null)
                         val file = JSONObject(result).getJSONObject("file")
                         val intent = Intent(it.context, FileActivity::class.java)
                         intent.putExtra("name", file.getString("name"))
@@ -294,7 +294,8 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
         }.start()
     }
     fun deleteMessage(id: String) {
-        URL(Constants().SITE_NAME + "deletemessage/${id}").readText(Charsets.UTF_8)
+        val result = Utils.request(context, "deletemessage/${id}", "GET", true, null)
+        Log.e("TAG", result)
         currentMessageId = ""
         currentMessageText = ""
     }
@@ -309,22 +310,9 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
         }.start()
     }
     fun editMessage(id: String) {
-        val url = URL(Constants().SITE_NAME + "editmessage/${id}")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
         val json = "{\"message\": \"${messageField?.text}\"}"
-        connection.outputStream.write(json.toByteArray())
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(context, "editmessage/${id}", "POST", true, json)
+        Log.e("TAG", result)
         messageField?.setText("")
         editing = false
         currentMessageId = ""

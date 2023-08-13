@@ -115,24 +115,11 @@ class UpdateProfileActivity : AppCompatActivity() {
             update()
         }
 
-        val imagesLayout = findViewById<View>(R.id.update_profile_images)
-
-//        addAvatar.setOnClickListener {
-//            imagesLayout.visibility = View.VISIBLE
-//            val intent = Intent(Intent.ACTION_PICK)
-//            intent.type = "image/*"
-//            startActivityForResult(intent, GALERY_ADD_AVATAR)
-//        }
         addAvatar.setOnClickListener {
             currentMode = "avatar"
             uploadImage("avatar")
         }
-//        addBanner.setOnClickListener {
-//            imagesLayout.visibility = View.VISIBLE
-//            val intent = Intent(Intent.ACTION_PICK)
-//            intent.type = "image/*"
-//            startActivityForResult(intent, GALERY_ADD_BANNER)
-//        }
+
         addBanner.setOnClickListener {
             currentMode = "banner"
             uploadImage("banner")
@@ -150,47 +137,6 @@ class UpdateProfileActivity : AppCompatActivity() {
         cityField?.setText(user.getString("city"))
     }
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        if (requestCode == GALERY_ADD_AVATAR && resultCode == RESULT_OK) {
-//            avatar?.setImageURI(data?.data)
-//            avatarUri = data?.data?.toString()
-//            val inputStream = contentResolver.openInputStream(data?.data!!)
-//            var outputStream: OutputStream? = null
-//            try {
-//                outputStream = FileOutputStream(File(filesDir, "img1"))
-//                var byteRead = inputStream?.read()
-//                while(byteRead  != -1) {
-//                    outputStream.write(byteRead!!)
-//                    byteRead = inputStream?.read()
-//                }
-//            } finally {
-//                inputStream?.close()
-//                outputStream?.close()
-//            }
-//            avatarFile = File(filesDir, "img1")
-//        } else if (requestCode == GALERY_ADD_BANNER && resultCode == RESULT_OK) {
-//            val imgUri = data?.data
-//            banner?.setImageURI(imgUri)
-//            bannerUri = data?.data?.toString()
-//            val inputStream = contentResolver.openInputStream(data?.data!!)
-//            var outputStream: OutputStream? = null
-//            try {
-//                outputStream = FileOutputStream(File(filesDir, "img2"))
-//                var byteRead = inputStream?.read()
-//                while(byteRead  != -1) {
-//                    outputStream.write(byteRead!!)
-//                    byteRead = inputStream?.read()
-//                }
-//            } finally {
-//                inputStream?.close()
-//                outputStream?.close()
-//            }
-//            bannerFile = File(filesDir, "img2")
-//        } else {
-//            Log.e("TAG", "Error")
-//        }
-//    }
 
     private fun uploadImage(mode: String) {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
@@ -269,7 +215,7 @@ class UpdateProfileActivity : AppCompatActivity() {
     }
 
     private fun sendData() {
-        val token = userData?.getString("token")
+        val token = Utils.updateToken(this)
         updateProfile(token!!)
         Utils().clearUserData(filesDir)
         runLoginActivity()

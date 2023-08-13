@@ -37,8 +37,7 @@ class PublicPhotosActivity : AppCompatActivity() {
         photosList.layoutManager = LinearLayoutManager(this)
 
         goBackButton.setOnClickListener {
-            val intent = Intent(it.context, HomeActivity::class.java)
-            it.context.startActivity(intent)
+            onBackPressed()
         }
     }
 }

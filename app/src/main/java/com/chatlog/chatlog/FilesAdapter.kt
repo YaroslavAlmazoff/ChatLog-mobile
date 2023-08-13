@@ -44,6 +44,7 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
         holder.name?.text = Utils.shortName(file.name, 20)
 
         if(file.type != "folder") {
+            holder.download?.visibility = View.VISIBLE
             holder.download?.setOnClickListener {
                 holder.download?.text = "Скачивание...."
                 Log.e("TAG", "DOWNLOAD")
@@ -55,34 +56,38 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                     holder?.download?.setOnClickListener {  }
                 }
             }
+            holder.delete?.setOnClickListener {
+                deleteFile(file.id, "file")
+            }
         } else {
+            holder.root?.setOnClickListener {
+                currentFolder.name = file.name
+                currentFolder.id = file.id
+                updatePath()
+            }
+            holder.delete?.setOnClickListener {
+                deleteFile(file.id, "dir")
+            }
             holder.download?.setOnClickListener {
-                holder.download?.text = "Скачивание...."
                 downloadFolder(file.id, file.name) {
-                    holder?.download?.text = "Скачано в папку DOWNLOADS"
-                    holder?.download?.setOnClickListener {  }
+                    Toast.makeText(context, "Загрузка завершена", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            holder.root?.setOnLongClickListener {
-                holder.delete?.visibility = View.VISIBLE
-                holder.cancel?.visibility = View.VISIBLE
-                true
-            }
-            holder.image?.setOnLongClickListener {
-                holder.delete?.visibility = View.VISIBLE
-                holder.cancel?.visibility = View.VISIBLE
-                true
-            }
-        }
-
-        holder.delete?.setOnClickListener {
-            deleteFile(file.id)
         }
 
         holder.cancel?.setOnClickListener {
             holder.delete?.visibility = View.GONE
             holder.cancel?.visibility = View.GONE
+        }
+        holder.root?.setOnLongClickListener {
+            holder.delete?.visibility = View.VISIBLE
+            holder.cancel?.visibility = View.VISIBLE
+            true
+        }
+        holder.image?.setOnLongClickListener {
+            holder.delete?.visibility = View.VISIBLE
+            holder.cancel?.visibility = View.VISIBLE
+            true
         }
 
 
@@ -103,9 +108,11 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                         Picasso.get().load(path).into(holder.image)
                         holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
                     }
-                    activity.runOnUiThread {
-                        holder.image?.setOnClickListener {
-                            showImage(path)
+                    if(file.type != "folder") {
+                        activity.runOnUiThread {
+                            holder.image?.setOnClickListener {
+                                showImage(path)
+                            }
                         }
                     }
                 } else if(file.ext == "mp3") {
@@ -144,17 +151,6 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                     Log.e("TAG", Constants().SITE_NAME_FILES + path)
                     activity.runOnUiThread {Picasso.get().load(Constants().SITE_NAME_FILES + path).into(holder.image)}
                 }
-                if(file.type == "folder") {
-                    activity.runOnUiThread {
-                        holder.root?.setOnClickListener {
-                            currentFolder.name = file.name
-                            currentFolder.id = file.id
-                            updatePath()
-                        }
-                    }
-                } else {
-                    activity.runOnUiThread { holder.download?.visibility = View.VISIBLE }
-                }
             } catch (e: InterruptedException) {
                 Log.e("TAG", "Error")
             }
@@ -180,26 +176,7 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
     fun downloadFolder(id: String, name: String, onComplete: () -> Unit) {
         Thread {
             try {
-                val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "cloud/download-folder/$id")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
+                val result = Utils.request(context, "cloud/download-folder/$id", "GET", true, null)
                 Log.e("TAG", result)
                 val archiveUrl = JSONObject(result).getString("archiveUrl")
                 if(archiveUrl != "") {
@@ -215,34 +192,15 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
         }.start()
     }
 
-    private fun deleteFile(id: String) {
+    private fun deleteFile(id: String, mode: String) {
         Thread {
             try {
-                val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "cloud/rmdir/${id}")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "DELETE"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
+                val result = Utils.request(context, if(mode == "dir") "cloud/rmdir/${id}" else "cloud/delete-mobile/${id}", "DELETE",true, null)
                 Log.e("TAG", result)
                 val response = JSONObject(result).getBoolean("deleted")
                 activity.runOnUiThread {
                     if(!response) {
-                        Toast.makeText(context, "Не удалось. Попробуйте еще раз", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Не удалось удалить. Попробуйте еще раз", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(context, "Удалено", Toast.LENGTH_SHORT).show()
                         activity.startActivity(Intent(context, CloudActivity::class.java))

@@ -97,7 +97,7 @@ class CommentsActivity : AppCompatActivity() {
         }.start()
     }
     private fun getComments(comments: ArrayList<Comment>, id: String) {
-        val json = URL(Constants().SITE_NAME + "/userpost/comments/${id}").readText(Charsets.UTF_8)
+        val json = Utils.request(this, "/userpost/comments/${id}", "GET", false, null)
         val commentsArray = JSONObject(json).getJSONArray("comments")
         for(i in 0 until commentsArray.length()) {
             comments.add(
@@ -110,24 +110,8 @@ class CommentsActivity : AppCompatActivity() {
         }
     }
     private fun sendComment(id: String, comments: ArrayList<Comment>) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "userpost/comment/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
         val json = "{\"text\": \"${commentField?.text.toString()}\"}"
-        connection.outputStream.write(json.toByteArray())
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "userpost/comment/$id", "POST", true, json)
         Log.e("TAG", result)
         val responseComment = JSONObject(result).getJSONObject("comment")
         comments.add(Comment(

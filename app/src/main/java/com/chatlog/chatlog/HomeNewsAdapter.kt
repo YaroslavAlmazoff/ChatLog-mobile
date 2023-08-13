@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.util.Log
@@ -51,7 +52,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             holder.delete?.setOnClickListener {
                 Thread {
                     try {
-                        deletePost(item.id)
+                        deletePost(item.id, it.context)
                     } catch(e: InterruptedException) {
                         Log.e("TAG", e.message!!)
                     }
@@ -103,26 +104,9 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             }
             Thread {
                 try {
-                    Log.e("TAG", "капец")
-                    val token = userData.getString("token")
-                    val url = URL(Constants().SITE_NAME + "like")
-                    val connection = url.openConnection() as HttpsURLConnection
-                    connection.requestMethod = "POST"
-                    connection.doOutput = true
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.setRequestProperty("Accept-Charset", "utf-8")
-                    connection.setRequestProperty("Authorization", "Bearer $token")
-
                     val json = if(item.liked) "{\"sub\": \"${item.liked}\", \"id\": \"${item.id}\"}"
                     else "{\"id\": \"${item.id}\"}"
-
-                    connection.outputStream.write(json.toByteArray())
-                    var data: Int = connection.inputStream.read()
-                    var result = ""
-                    while(data != -1) {
-                        result += data.toChar().toString()
-                        data = connection.inputStream.read()
-                    }
+                    val result = Utils.request(it.context, "like", "POST", true, json)
                     Log.e("TAG", result)
                 } catch (e: InterruptedException) {
                     Log.e("TAG", "Не удалось поставить лайк")
@@ -170,21 +154,8 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         }
     }
 
-    private fun deletePost(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "deleteuserpost/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "DELETE"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+    private fun deletePost(id: String, context: Context) {
+        val result = Utils.request(context, "deleteuserpost/$id", "DELETE", true, null)
         Log.e("TAG", result)
     }
 }

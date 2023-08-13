@@ -374,12 +374,11 @@ class ChatMessengerActivity : AppCompatActivity() {
         greed?.adapter = ImagesAdapter(applicationContext, mode)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun getMessagesInBackground() {
         Thread {
             try {
-                Log.e("TAG", "before get messages")
                 getMessages()
-                Log.e("TAG", "before get room")
                 getRoom()
                 runOnUiThread {
                     messagesList?.adapter?.notifyDataSetChanged()
@@ -399,8 +398,7 @@ class ChatMessengerActivity : AppCompatActivity() {
         }.start()
     }
     fun getRoom() {
-        val roomData = URL(Constants().SITE_NAME + "chatroombyid/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
-        Log.e("TAG", roomData)
+        val roomData = Utils.request(this, "chatroombyid/${intent.getStringExtra("id")!!}", "GET", false, null)
         val image = JSONObject(roomData).getJSONObject("room").getString("bg")
         avatarUrl = JSONObject(roomData).getJSONObject("room").getString("avatarUrl")
         creator = JSONObject(roomData).getJSONObject("room").getString("creator")
@@ -418,7 +416,7 @@ class ChatMessengerActivity : AppCompatActivity() {
     }
     fun getMessages() {
         Log.e("TAG", intent.getStringExtra("id")!!)
-        val messagesData = URL(Constants().SITE_NAME + "getmessagesstart/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        val messagesData = Utils.request(this, "getmessagesstart/${intent.getStringExtra("id")!!}", "GET", false, null)
         Log.e("TAG", messagesData)
         val usersArray = JSONObject(messagesData).getJSONArray("messages")
         for(i in 0 until usersArray.length()) {
@@ -497,7 +495,7 @@ class ChatMessengerActivity : AppCompatActivity() {
         var body2: MultipartBody.Part? = null
         var body3: MultipartBody.Part? = null
 
-        val token = userData?.getString("token")
+        val token = Utils.updateToken(this)
 
         val isFile = RequestBody.create("text/plain".toMediaTypeOrNull(), "false")
         val message = RequestBody.create("text/plain".toMediaTypeOrNull(), messageField?.text?.toString()!!)
@@ -734,6 +732,8 @@ class ChatMessengerActivity : AppCompatActivity() {
                     fos.flush()
                     fos.close()
 
+                    val token = Utils.updateToken(it.context)
+
 
                     val interceptor = HttpLoggingInterceptor()
                     interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -758,7 +758,7 @@ class ChatMessengerActivity : AppCompatActivity() {
                         CoroutineScope(Dispatchers.IO).launch {
                             chatLogApi.sendRoomBg(
                                 intent.getStringExtra("id")!!,
-                                body
+                                body, token
                             )
                         }
                     } catch(e: IllegalStateException) {

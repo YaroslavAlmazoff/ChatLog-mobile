@@ -24,9 +24,31 @@ interface ChatLogApi {
     ): Response<String>
 
     @Multipart
+    @POST("public/edit/{id}")
+    suspend fun updatePublic(
+        @Path("id") id: String,
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part file: MultipartBody.Part?,
+        @Part file2: MultipartBody.Part?,
+        @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
     @POST("createuserpost")
     suspend fun sendPost(
         @Part("title") title: RequestBody,
+        @Part("date") date: RequestBody,
+        @Part file: List<MultipartBody.Part?>,
+        @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
+    @POST("public/createpost/{id}")
+    suspend fun sendPublicPost(
+        @Path("id") id: String,
+        @Part("title") title: RequestBody,
+        @Part("text") text: RequestBody,
         @Part("date") date: RequestBody,
         @Part file: List<MultipartBody.Part?>,
         @Header("Authorization") token: String,
@@ -47,23 +69,11 @@ interface ChatLogApi {
     ): String
 
     @Multipart
-    @POST("new-chatmessages-mobile/{id}")
-    suspend fun sendChatMessage(
-        @Path("id") id: String,
-        @Part("message") message: RequestBody,
-        @Part("date") date: RequestBody,
-        @Part("isFile") isFile: RequestBody,
-        @Part file: MultipartBody.Part?,
-        @Part videoFile: MultipartBody.Part?,
-        @Part audioFile: MultipartBody.Part?,
-        @Header("Authorization") token: String,
-    ): String
-
-    @Multipart
     @POST("uploadbg-mobile/{id}")
     suspend fun sendRoomBg(
         @Path("id") id: String,
         @Part file: MultipartBody.Part?,
+        @Header("Authorization") token: String
     ): String
 
     @Multipart
@@ -80,6 +90,7 @@ interface ChatLogApi {
         @Path("id") id: String,
         @Part("title") title: String,
         @Part file: MultipartBody.Part?,
+        @Header("Authorization") token: String,
     ): String
 
     @Multipart
@@ -93,5 +104,13 @@ interface ChatLogApi {
         @Header("Authorization") token: String
     ): String
 
-
+    @Multipart
+    @POST("public/create")
+    suspend fun createPublic(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part avatar: MultipartBody.Part?,
+        @Part banner: MultipartBody.Part?,
+        @Header("Authorization") token: String,
+    ): String
 }

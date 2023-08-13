@@ -57,8 +57,11 @@ class HomeActivity : AppCompatActivity() {
         weatherCity = findViewById(R.id.weather_city)
         weatherText = findViewById(R.id.weather_text)
         weatherImage = findViewById(R.id.weather_image)
-        user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
+
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
+
+
+        user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
 
         val unicode = 0x1F3E0
         weatherCity?.text = util.getEmojiByUnicode(unicode) + user?.getString("city").toString()
@@ -103,7 +106,7 @@ class HomeActivity : AppCompatActivity() {
 
         newsList?.adapter = HomeNewsAdapter(newsArr, userData!!)
         newsList?.layoutManager = LinearLayoutManager(this)
-        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr, userData!!)
+        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr, userData!!, this)
         publicNewsList?.layoutManager = LinearLayoutManager(this)
     }
     private fun getNewsInBackground(news: ArrayList<NewsItem>, isFriends: Boolean) {
@@ -134,7 +137,7 @@ class HomeActivity : AppCompatActivity() {
             publicNewsList?.visibility = View.GONE
             newsList?.visibility = View.VISIBLE
         }
-        val newsData = URL(Constants().SITE_NAME + "ffn/${user?.getString("_id")}").readText(Charsets.UTF_8)
+        val newsData = Utils.request(this, "ffn/${user?.getString("_id")}", "GET", false, null)
         val newsArray = JSONObject(newsData).getJSONArray("news")
         for(i in 0 until newsArray.length()) {
             news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
@@ -146,7 +149,9 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getInt("comments"),
                 newsArray.getJSONObject(i).getBoolean("liked"),
                 newsArray.getJSONObject(i).getJSONArray("images"),
-                newsArray.getJSONObject(i).getString("_id")
+                newsArray.getJSONObject(i).getString("_id"),
+                "",
+                ""
             ))
         }
     }
@@ -157,7 +162,7 @@ class HomeActivity : AppCompatActivity() {
             newsList?.visibility = View.GONE
             publicNewsList?.visibility = View.VISIBLE
         }
-        val newsData = URL(Constants().SITE_NAME + "fpn/${user?.getString("_id")}").readText(Charsets.UTF_8)
+        val newsData = Utils.request(this, "fpn/${user?.getString("_id")}", "GET", false, null)
         Log.e("TAG", newsData)
         val newsArray = JSONObject(newsData).getJSONArray("news")
         for(i in 0 until newsArray.length()) {
@@ -170,7 +175,9 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getInt("comments"),
                 newsArray.getJSONObject(i).getBoolean("liked"),
                 newsArray.getJSONObject(i).getJSONArray("images"),
-                newsArray.getJSONObject(i).getString("_id")
+                newsArray.getJSONObject(i).getString("_id"),
+                newsArray.getJSONObject(i).getString("public"),
+                newsArray.getJSONObject(i).getString("admin")
                 ))
         }
     }
@@ -185,7 +192,7 @@ class HomeActivity : AppCompatActivity() {
     }
     private fun getData() {
         val url = "https://api.openweathermap.org/data/2.5/weather"
-        val city = URL(Constants().SITE_NAME + "mobile/translit/${user?.getString("city")}").readText(Charsets.UTF_8)
+        val city = Utils.request(this, "mobile/translit/${user?.getString("city")}", "GET", false, null)
         val weatherData = URL(url + "?q=${JSONObject(city).getString("message")}&units=metric&APPID=${Constants().WEATHER_API_KEY}").readText(Charsets.UTF_8)
         Log.e("TAG", weatherData)
         val resultWeather = "${JSONObject(weatherData).getJSONObject("main").getString("temp").toFloat().toInt()}, " +

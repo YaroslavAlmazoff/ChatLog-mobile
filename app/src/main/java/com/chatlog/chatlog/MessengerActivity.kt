@@ -385,7 +385,7 @@ class MessengerActivity : AppCompatActivity() {
         }.start()
     }
     fun getRoom() {
-        val roomData = URL(Constants().SITE_NAME + "roombyid/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        val roomData = Utils.request(this, "roombyid/${intent.getStringExtra("id")!!}", "GET", true, null)
         Log.e("TAG", roomData)
         val image = JSONObject(roomData).getJSONObject("room").getString("bg")
         runOnUiThread {
@@ -394,7 +394,7 @@ class MessengerActivity : AppCompatActivity() {
         }
     }
     fun getMessages() {
-        val usersData = URL(Constants().SITE_NAME + "getmessagesstart/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        val usersData = Utils.request(this, "getmessagesstart/${intent.getStringExtra("id")!!}", "GET", true, null)
         val usersArray = JSONObject(usersData).getJSONArray("messages")
         for(i in 0 until usersArray.length()) {
             messagesArray?.add(Message(
@@ -422,7 +422,7 @@ class MessengerActivity : AppCompatActivity() {
     fun getUser() {
         userData?.getJSONObject("user")?.getString("_id")?.let { Log.e("TAG", it) }
         intent.getStringExtra("id")?.let { Log.e("TAG", it) }
-        val user = URL(Constants().SITE_NAME + "user2byroom/${userData?.getJSONObject("user")?.getString("_id")}/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        val user = Utils.request(this, "user2byroom/${userData?.getJSONObject("user")?.getString("_id")}/${intent.getStringExtra("id")!!}", "GET", true, null)
         runOnUiThread {
             headText?.text = JSONObject(user).getJSONObject("user").getString("name") + " " +
                     JSONObject(user).getJSONObject("user").getString("surname")
@@ -430,7 +430,8 @@ class MessengerActivity : AppCompatActivity() {
         }
     }
     fun read() {
-        URL(Constants().SITE_NAME + "read/${intent.getStringExtra("id")!!}").readText(Charsets.UTF_8)
+        val result = Utils.request(this, "read/${intent.getStringExtra("id")!!}", "GET", true, null)
+        Log.e("TAG", result)
     }
     fun sendMessageInBackground() {
         Thread {
@@ -466,7 +467,7 @@ class MessengerActivity : AppCompatActivity() {
         var body2: MultipartBody.Part? = null
         var body3: MultipartBody.Part? = null
 
-        val token = userData?.getString("token")
+        val token = Utils.updateToken(this)
 
         val isFile = RequestBody.create("text/plain".toMediaTypeOrNull(), "false")
         val message = RequestBody.create("text/plain".toMediaTypeOrNull(), messageField?.text?.toString()!!)
@@ -711,6 +712,8 @@ class MessengerActivity : AppCompatActivity() {
                     val interceptor = HttpLoggingInterceptor()
                     interceptor.level = HttpLoggingInterceptor.Level.BODY
 
+                    val token = Utils.updateToken(it.context)
+
                     val client = OkHttpClient.Builder()
                         .addInterceptor(interceptor)
                         .build()
@@ -731,7 +734,7 @@ class MessengerActivity : AppCompatActivity() {
                         CoroutineScope(Dispatchers.IO).launch {
                             chatLogApi.sendRoomBg(
                                 intent.getStringExtra("id")!!,
-                                body
+                                body, token
                             )
                         }
                     } catch(e: IllegalStateException) {

@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.util.Util
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -189,7 +190,7 @@ class DiscussionSettingsActivity : AppCompatActivity() {
     }
     private fun getUsers(adapter: MembersAdapter) {
         Log.e("TAG", "in getUsers")
-        val usersData = URL(Constants().SITE_NAME + "fullmembers/${intent.getStringExtra("id")}").readText(Charsets.UTF_8)
+        val usersData = Utils.request(this, "fullmembers/${intent.getStringExtra("id")}", "GET", false, null)
         val usersDataArray = JSONObject(usersData).getJSONArray("members")
         Log.e("TAG", usersData)
         for(i in 0 until usersDataArray.length()) {
@@ -211,21 +212,7 @@ class DiscussionSettingsActivity : AppCompatActivity() {
     private fun leaveDiscussion() {
         Thread {
             try {
-                val url = URL(Constants().SITE_NAME + "leave/${intent.getStringExtra("id")}")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "DELETE"
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
-                var data: Int = connection.inputStream.read()
-                var result = ""
-                var byteArr = byteArrayOf()
-                while(data != -1) {
-                    result += data.toChar().toString()
-                    byteArr.plus(data.toByte())
-                    data = connection.inputStream.read()
-                }
+                val result = Utils.request(this, "leave/${intent.getStringExtra("id")}", "DELETE", true, null)
                 runOnUiThread {
                     if(JSONObject(result).getJSONArray("errors").length() != 0) {
                         Toast.makeText(applicationContext, JSONObject(result).getJSONArray("errors").getString(0), Toast.LENGTH_LONG).show()
@@ -244,21 +231,9 @@ class DiscussionSettingsActivity : AppCompatActivity() {
     private fun removeDiscussion() {
         Thread {
             try {
-                val url = URL(Constants().SITE_NAME + "remove/${intent.getStringExtra("id")}")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "DELETE"
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
-                var data: Int = connection.inputStream.read()
-                var result = ""
-                var byteArr = byteArrayOf()
-                while(data != -1) {
-                    result += data.toChar().toString()
-                    byteArr.plus(data.toByte())
-                    data = connection.inputStream.read()
-                }
+                Log.e("TAG", "fuck")
+                val result = Utils.request(this, "remove/${intent.getStringExtra("id")}", "DELETE", true, null)
+                Log.e("TAG", result)
                 runOnUiThread {
                     if(JSONObject(result).getJSONArray("errors").length() != 0) {
                         Toast.makeText(applicationContext, JSONObject(result).getJSONArray("errors").getString(0), Toast.LENGTH_LONG).show()
@@ -281,6 +256,8 @@ class DiscussionSettingsActivity : AppCompatActivity() {
                 val interceptor = HttpLoggingInterceptor()
                 interceptor.level = HttpLoggingInterceptor.Level.BODY
 
+                val token = Utils.updateToken(this)
+
                 val client = OkHttpClient.Builder()
                     .addInterceptor(interceptor)
                     .build()
@@ -302,7 +279,7 @@ class DiscussionSettingsActivity : AppCompatActivity() {
                     CoroutineScope(Dispatchers.IO).launch {
                         chatLogApi.saveDiscussion(
                             intent?.getStringExtra("id")!!,
-                            titleField?.text.toString(), body
+                            titleField?.text.toString(), body, token
                         )
                     }
                 } catch(e: IllegalStateException) {

@@ -44,7 +44,7 @@ class RecipientsAdapter(private val people: ArrayList<User>, private val userDat
             if(activity.intent.getBooleanExtra("link", false)) {
                 Thread {
                     try {
-                        val result = URL(Constants().SITE_NAME + "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/${user.id}").readText(Charsets.UTF_8)
+                        val result = Utils.request(it.context, "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/${user.id}", "GET", true, null)
                         Log.e("TAG", result)
                         activity.runOnUiThread {
                             if(JSONObject(result).getInt("err") == 0 || JSONObject(result).getInt("err") == 1) {
@@ -64,21 +64,7 @@ class RecipientsAdapter(private val people: ArrayList<User>, private val userDat
             } else {
                 Thread {
                     try {
-                        val url = URL(
-                            Constants().SITE_NAME + "cloud/sendfile-mobile/${user.id}/${activity.intent.getStringExtra("file")}")
-                        val connection = url.openConnection() as HttpsURLConnection
-                        connection.requestMethod = "GET"
-                        connection.setRequestProperty("Content-Type", "application/json")
-                        connection.setRequestProperty("Accept-Charset", "utf-8")
-                        connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
-                        var data: Int = connection.inputStream.read()
-                        var result = ""
-                        var byteArr = byteArrayOf()
-                        while(data != -1) {
-                            result += data.toChar().toString()
-                            byteArr.plus(data.toByte())
-                            data = connection.inputStream.read()
-                        }
+                        val result = Utils.request(it.context, "cloud/sendfile-mobile/${user.id}/${activity.intent.getStringExtra("file")}", "GET", true, null)
                         activity.runOnUiThread {
                             holder.fileSent?.visibility = View.VISIBLE
                         }

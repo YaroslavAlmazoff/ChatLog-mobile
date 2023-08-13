@@ -124,7 +124,7 @@ class CreateDiscussion : AppCompatActivity() {
                 var requestFile: RequestBody? = null
                 var body: MultipartBody.Part? = null
 
-                val token = userData?.getString("token")
+                val token = Utils.updateToken(this)
 
                 if(imageFile != null) {
                     requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)

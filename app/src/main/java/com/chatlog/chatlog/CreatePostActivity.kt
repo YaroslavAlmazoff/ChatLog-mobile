@@ -105,31 +105,7 @@ class CreatePostActivity : AppCompatActivity() {
             uploadImage()
         }
     }
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        if (requestCode == GALERY_ADD_PHOTO && resultCode == RESULT_OK) {
-//            selectedImagesArray?.add(SelectedImage(data?.data?.toString()!!))
-//            val inputStream = contentResolver.openInputStream(data?.data!!)
-//            var outputStream: OutputStream? = null
-//            try {
-//                outputStream = FileOutputStream(File(filesDir, "photo$currentPhotoNumber"))
-//                var byteRead = inputStream?.read()
-//                while(byteRead  != -1) {
-//                    outputStream.write(byteRead!!)
-//                    byteRead = inputStream?.read()
-//                }
-//            } finally {
-//                inputStream?.close()
-//                outputStream?.close()
-//            }
-//            photos?.add(File(filesDir, "photo$currentPhotoNumber"))
-//            imagesList?.adapter?.notifyDataSetChanged()
-//            currentPhotoNumber++
-//            Log.e("TAG", currentPhotoNumber.toString())
-//        } else {
-//            Log.e("TAG", "Error")
-//        }
-//    }
+
     private fun sendInBackground() {
         Thread {
             try {
@@ -140,44 +116,12 @@ class CreatePostActivity : AppCompatActivity() {
         }.start()
     }
     private fun sendData() {
-        val token = userData?.getString("token")
+        val token = Utils.updateToken(this)
         updateProfile(token!!)
         runUserActivity()
     }
 
 
-//    @RequiresApi(33)
-//    private fun uploadImage() {
-//        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
-//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
-//        } else {
-//            listFiles()
-//        }
-//    }
-//
-//    @RequiresApi(33)
-//    override fun onRequestPermissionsResult(requestCode: Int,
-//                                            permissions: Array<String>, grantResults: IntArray) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        Log.e("TAG", requestCode.toString())
-//        when (requestCode) {
-//            101 -> {
-//                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    listFiles()
-//                } else {
-//                    uploadImage()
-//                }
-//                return
-//            }
-//        }
-//    }
-//
-//    private fun listFiles() {
-//        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-//        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-//        pickImages?.visibility = View.VISIBLE
-//        greed?.adapter = ImagesAdapter(applicationContext)
-//    }
 private fun uploadImage() {
     if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)

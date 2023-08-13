@@ -1,5 +1,7 @@
 package com.chatlog.chatlog
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.util.Log
@@ -16,7 +18,7 @@ import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject) : RecyclerView.Adapter<PublicNewsAdapter.ViewHolder>() {
+class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject, val activity: Activity) : RecyclerView.Adapter<PublicNewsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.news_item, parent, false)
@@ -35,6 +37,19 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
         }
         holder.likeImage?.setImageResource(R.drawable.blue_like)
         Log.e("TAG", item.liked.toString())
+
+        Log.e("TAG",userData?.getJSONObject("user")?.getString("_id")!!)
+        Log.e("TAG",item.admin)
+        if(userData?.getJSONObject("user")?.getString("_id") == item.admin) {
+            holder.delete?.visibility = View.VISIBLE
+            holder?.delete?.setOnClickListener {
+                deletePost(item.id, it.context)
+                items.removeAt(position)
+                notifyItemRemoved(position)
+                notifyItemRangeChanged(position, items.size)
+            }
+        }
+
         if(item.liked) {
             holder.likes?.text = item.likes.toString()
             holder.likeImage?.setImageResource(R.drawable.red_like)
@@ -71,37 +86,48 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
         holder.comment?.setOnClickListener {
             val intent = Intent(it.context, PublicCommentsActivity::class.java)
             intent.putExtra("id", item.id)
+            intent.putExtra("public", item.public)
             it.context.startActivity(intent)
         }
         holder.like?.setOnClickListener {
             if(item.liked) {
-                holder.likes?.text = (item.likes - 1).toString()
+                item.liked = false
+                item.likes = item.likes - 1
+                holder.likes?.text = (item.likes).toString()
                 holder.likeImage?.setImageResource(R.drawable.blue_like)
                 holder.likes?.setTextColor(Color.parseColor("#40A4FF"))
             } else {
-                holder.likes?.text = (item.likes + 1).toString()
+                item.liked = true
+                item.likes = item.likes + 1
+                holder.likes?.text = (item.likes).toString()
                 holder.likeImage?.setImageResource(R.drawable.red_like)
                 holder.likes?.setTextColor(Color.parseColor("#FF073A"))
             }
             Thread {
                 try {
-                    Log.e("TAG", "капец")
-                    val token = userData.getString("token")
-                    val url = URL(Constants().SITE_NAME + "public/likepost/${item.id}")
-                    val connection = url.openConnection() as HttpsURLConnection
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.setRequestProperty("Accept-Charset", "utf-8")
-                    connection.setRequestProperty("Authorization", "Bearer $token")
-
-                    var data: Int = connection.inputStream.read()
-                    var result = ""
-                    while(data != -1) {
-                        result += data.toChar().toString()
-                        data = connection.inputStream.read()
-                    }
+                    val result = Utils.request(it.context, "public/likepost/${item.id}", "GET", true, null)
+                    Log.e("TAG", result)
                 } catch (e: InterruptedException) {
                     Log.e("TAG", "Не удалось поставить лайк")
+                }
+            }.start()
+        }
+        holder.user?.setOnClickListener {
+            Thread {
+                try {
+                    val publicData = Utils.request(it.context, "public/public/${item.public}", "GET", true, null)
+                    val public = JSONObject(publicData).getJSONObject("pub")
+                    val intent = Intent(it.context, PublicActivity::class.java)
+                    intent.putExtra("id", public.getString("_id"))
+                    intent.putExtra("name", public.getString("name"))
+                    intent.putExtra("description", public.getString("description"))
+                    intent.putExtra("avatarUrl", public.getString("avatarUrl"))
+                    intent.putExtra("bannerUrl", public.getString("bannerUrl"))
+                    intent.putExtra("admin", public.getString("admin"))
+                    intent.putExtra("isSubscriber", true)
+                    activity.startActivity(intent)
+                } catch(e: InterruptedException) {
+                    Log.e("TAG", "Error")
                 }
             }.start()
         }
@@ -125,6 +151,7 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
         var comments: TextView? = null
         var commentImage: ImageView? = null
         var viewAllImagesButton: Button? = null
+        var delete: TextView? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -140,6 +167,14 @@ class PublicNewsAdapter(private val items: ArrayList<NewsItem>, private var user
             comments = itemView.findViewById(R.id.news_comments)
             commentImage = itemView.findViewById(R.id.comment_image)
             viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
+            delete = itemView.findViewById(R.id.news_delete)
         }
+    }
+
+    private fun deletePost(id: String, context: Context) {
+        Thread {
+            val result = Utils.request(context, "public/deletepost/$id", "DELETE", true, null)
+            Log.e("TAG", result)
+        }.start()
     }
 }

@@ -91,11 +91,6 @@ class RegisterActivity : AppCompatActivity() {
         }.start()
     }
     private fun sendData() {
-        val url = URL("https://chatlog.ru/api/auth/register")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
         val json = "{\"name\": \"${nameField?.text.toString()}\", " +
                 "\"surname\": \"${surnameField?.text.toString()}\", " +
                 "\"age\": \"${dateField?.text.toString()}\", " +
@@ -103,13 +98,7 @@ class RegisterActivity : AppCompatActivity() {
                 "\"country\": \"${countryField?.text.toString()}\"," +
                 "\"city\": \"${cityField?.text.toString()}\"," +
                 "\"password\": \"${password1Field?.text.toString()}\"}"
-        connection.outputStream.write(json.toByteArray())
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "register", "POST", false, json)
         Utils().saveUserData(result, filesDir)
         runHomeActivity()
     }

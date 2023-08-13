@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
@@ -28,23 +29,23 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
             holder.complicatedButtons?.visibility = View.VISIBLE
             if(item.type == Constants.NOTIFICATION_TYPE_FRIENDS) {
                 holder.reply?.setOnClickListener {
-                    replyFriendInBackground(true, item.id, item.from, item.title)
+                    replyFriendInBackground(true, item.id, item.from, item.title, it.context)
                     holder.notification?.visibility = View.GONE
                     Toast.makeText(it.context, R.string.already_friends, Toast.LENGTH_SHORT).show()
                 }
                 holder.reject?.setOnClickListener {
-                    replyFriendInBackground(false, item.id, item.from, item.title)
+                    replyFriendInBackground(false, item.id, item.from, item.title, it.context)
                     holder.notification?.visibility = View.GONE
                     Toast.makeText(it.context, R.string.rejected, Toast.LENGTH_SHORT).show()
                 }
             } else {
                 holder.reply?.setOnClickListener {
-                    getFileInBackground(true, item.id)
+                    getFileInBackground(true, item.id, it.context)
                     holder.notification?.visibility = View.GONE
                     Toast.makeText(it.context, R.string.file_ok, Toast.LENGTH_SHORT).show()
                 }
                 holder.reject?.setOnClickListener {
-                    getFileInBackground(false, item.id)
+                    getFileInBackground(false, item.id, it.context)
                     holder.notification?.visibility = View.GONE
                     Toast.makeText(it.context, R.string.file_rejected, Toast.LENGTH_SHORT).show()
                 }
@@ -69,7 +70,7 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
             holder.notification?.visibility = View.GONE
             Thread {
                 try {
-                    deleteNotification(item.title)
+                    deleteNotification(item.title, it.context)
                 } catch(e: InterruptedException) {
                     Log.e("TAG", e.message!!)
                 }
@@ -123,27 +124,14 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
             Constants.NOTIFICATION_FORMAT_COMPLICATED
         else ""
     }
-    private fun replyFriendInBackground(value: Boolean, id: String, from: String, title: String) {
+    private fun replyFriendInBackground(value: Boolean, id: String, from: String, title: String, context: Context) {
         Thread {
             try {
                 fun reply() {
-                    val token = userData?.getString("token")
-                    val url = URL(Constants().SITE_NAME + "reply/$from")
-                    val connection = url.openConnection() as HttpsURLConnection
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.setRequestProperty("Accept-Charset", "utf-8")
-                    connection.setRequestProperty("Authorization", "Bearer $token")
-
-                    var data: Int = connection.inputStream.read()
-                    var result = ""
-                    while(data != -1) {
-                        result += data.toChar().toString()
-                        data = connection.inputStream.read()
-                    }
+                    val result = Utils.request(context, "reply/$from", "GET", true, null)
                     Log.e("TAG", result)
                 }
-                deleteNotification(title)
+                deleteNotification(title, context)
                 if(value) {
                     reply()
                 }
@@ -152,28 +140,15 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
             }
         }.start()
     }
-    private fun deleteNotification(title: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "deletenotification/$title")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "DELETE"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+    private fun deleteNotification(title: String, context: Context) {
+        val result = Utils.request(context, "deletenotification/$title", "DELETE", true, null)
         Log.e("TAG", result)
     }
-    private fun getFileInBackground(value: Boolean, id: String) {
+    private fun getFileInBackground(value: Boolean, id: String, context: Context) {
         Thread {
             try {
                 if(value) {
-                    val response = URL(Constants().SITE_NAME + "getsentfile/$id").readText(Charsets.UTF_8)
+                    val response = Utils.request(context, "getsentfile/$id", "GET", true, null)
                     Log.e("TAG", response)
                 }
             } catch (e: InterruptedException) {

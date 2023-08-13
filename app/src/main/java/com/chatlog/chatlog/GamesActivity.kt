@@ -90,7 +90,7 @@ class GamesActivity : AppCompatActivity() {
     }
     @SuppressLint("NotifyDataSetChanged")
     private fun getGames(games: ArrayList<Game>) {
-        val gamesData = URL(Constants().SITE_NAME + "games/games").readText(Charsets.UTF_8)
+        val gamesData = Utils.request(this, "games/games", "GET", false, null)
         val gamesArray = JSONObject(gamesData).getJSONArray("games")
         Log.e("TAG", gamesData)
         for(i in 0 until gamesArray.length()) {

@@ -176,4 +176,22 @@
     <string name="open_write_review">Написать отзыв</string>
     <string name="write_review_hint">Напишите ваше мнение о приложении</string>
     <string name="write_review_cancel">Закрыть поле ввода</string>
+    <string name="subscribed">Вы подписались</string>
+    <string name="unsubscribed">Вы отписались</string>
+    <string name="subscribe">+ Подписаться</string>
+    <string name="unscribe">Отписаться</string>
+    <string name="settings">Настройки</string>
+    <string name="groups">Группы</string>
+    <string name="create_group">Создать группу</string>
+    <string name="create_public_title">Создание группы</string>
+    <string name="create_public_name_field">Название группы</string>
+    <string name="create_public_description_field">Введите описание</string>
+    <string name="create_public_description_error">Введите описание</string>
+    <string name="create_public_name_error">Введите описание</string>
+    <string name="already_subscribed">Вы подписаны</string>
+    <string name="subscribers">Подписчики</string>
+    <string name="article_text_hint">Ваша статья</string>
+    <string name="article_title_hint">Заголовок</string>
+    <string name="update_public_title">Обновление группы</string>
+    <string name="update_public_title_error">Введите название группы</string>
 </resources>

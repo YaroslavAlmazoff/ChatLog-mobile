@@ -119,7 +119,7 @@ class GameActivity : AppCompatActivity() {
     fun getReviewsInBackground(id: String) {
         Thread {
             try {
-                val usersData = URL(Constants().SITE_NAME + "games/comments/$id").readText(Charsets.UTF_8)
+                val usersData = Utils.request(this, "games/comments/$id", "GET", false, null)
                 val usersArray = JSONObject(usersData).getJSONArray("comments")
                 Log.e("TAG", usersData)
                 for(i in 0 until usersArray.length()) {

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.chatlog.chatlog">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -23,6 +22,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatLog"
         tools:targetApi="33">
+        <activity
+            android:name=".TextActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreatePublicActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PublicActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PublicsActivity"
+            android:exported="false" />
         <activity
             android:name=".GameActivity"
             android:exported="false" />
@@ -57,7 +71,13 @@
             android:name=".CreatePostActivity"
             android:exported="false" />
         <activity
+            android:name=".CreatePublicPostActivity"
+            android:exported="false" />
+        <activity
             android:name=".UpdateProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UpdatePublicActivity"
             android:exported="false" />
         <activity
             android:name=".PublicCommentsActivity"

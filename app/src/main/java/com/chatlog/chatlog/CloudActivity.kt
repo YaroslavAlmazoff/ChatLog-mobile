@@ -215,31 +215,8 @@ class CloudActivity : AppCompatActivity() {
         if(currentFolder.name != "root") {
             Thread {
                 try {
-                    val token = userData?.getString("token")
-                    val url = URL(Constants().SITE_NAME + "cloud/getpath-mobile")
-                    val connection = url.openConnection() as HttpsURLConnection
-                    connection.requestMethod = "POST"
-                    connection.doOutput = true
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.setRequestProperty("Accept-Charset", "utf-8")
-                    connection.setRequestProperty("Authorization", "Bearer $token")
-
                     val json = "{\"id\": \"${currentFolder.id}\"}"
-                    Log.e("TAG", json)
-                    connection.outputStream.write(json.toByteArray())
-
-                    val inputStream = connection.inputStream
-                    val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    var line: String? = reader.readLine()
-                    var result = ""
-
-                    while (line != null) {
-                        result += line
-                        line = reader.readLine()
-                    }
-
-                    reader.close()
-                    connection.disconnect()
+                    val result = Utils.request(this, "cloud/getpath-mobile", "POST", true, json)
                     Log.e("TAG", result)
                     val pathArr = JSONObject(result).getJSONArray("path")
                     Log.e("TAG", "названия папок Json")
@@ -269,46 +246,21 @@ class CloudActivity : AppCompatActivity() {
     private fun getFiles(mode: String, type: String?) {
         Thread {
             try {
-                filesArray?.clear()
-                Log.e("TAG", currentFolder.name)
-                val token = userData?.getString("token")
-                val url =
-                    if (mode == "search") URL(Constants().SITE_NAME + "cloud/filesbysearch")
-                    else if(mode == "sort") URL(Constants().SITE_NAME + "cloud/sortedfiles")
-                    else URL(Constants().SITE_NAME + "cloud/filesbyfolder")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "POST"
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
                 var fileType = ""
 
                 if(type != null) {
                     fileType = type
                 }
-
+                filesArray?.clear()
                 val json = "{\"id\": \"${currentFolder.id}\", \"search\": \"${searchString}\", \"sort\": \"$fileType\"}"
-                Log.e("TAG", json)
-                connection.outputStream.write(json.toByteArray())
+                val result = Utils.request(this,
+                if (mode == "search") "cloud/filesbysearch"
+                else if(mode == "sort") "cloud/sortedfiles"
+                else "cloud/filesbyfolder", "POST", true,  json)
 
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
                 Log.e("TAG", result)
-                if(result.contains("verified")) {
-                    return@Thread
-                }
+
+
                 val files = JSONObject(result).getJSONArray("files")
                 if(files.length() == 0) {
                     runOnUiThread {
@@ -355,32 +307,8 @@ class CloudActivity : AppCompatActivity() {
         createFolderWrapper?.visibility = View.GONE
         Thread {
             try {
-                val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "cloud/mkdir-mobile")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "POST"
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val json = "{\"folderId\": \"${currentFolder.id}\", \"name\": \"${folderField?.text}\"}"
-                Log.e("TAG", json)
-                connection.outputStream.write(json.toByteArray())
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
-
+                val json = "{\"folderId\": \"${currentFolder.id}\", \"name\": \"${folderField?.text}\", \"parent\": \"${currentFolder.name}\"}"
+                val result = Utils.request(this, "cloud/mkdir-mobile", "POST", true, json)
                 Log.e("TAG", result)
 
                 val file = JSONObject(result).getJSONObject("file")
@@ -401,6 +329,8 @@ class CloudActivity : AppCompatActivity() {
                 runOnUiThread {
                     filesAdapter?.notifyDataSetChanged()
                     filesAdapter?.filter("")
+                    noFiles?.visibility = View.GONE
+                    noFiles?.text = ""
                 }
             } catch (e: InterruptedException) {
                 Log.e("TAG", "Пон")
@@ -484,7 +414,7 @@ class CloudActivity : AppCompatActivity() {
                     .addConverterFactory(GsonConverterFactory.create()).build()
                 val chatLogApi = retrofit.create(ChatLogApi::class.java)
 
-                val token = userData?.getString("token")
+                val token = Utils.updateToken(this)
 
                 val parts: ArrayList<MultipartBody.Part> = ArrayList()
 
@@ -537,6 +467,8 @@ class CloudActivity : AppCompatActivity() {
                         runOnUiThread {
                             filesAdapter?.notifyDataSetChanged()
                             filesAdapter?.filter("")
+                            noFiles?.visibility = View.GONE
+                            noFiles?.text = ""
                         }
                     }
                 } catch(e: IllegalStateException) {

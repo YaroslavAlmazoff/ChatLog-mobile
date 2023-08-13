@@ -134,22 +134,7 @@ class MessengerListActivity : AppCompatActivity() {
         }.start()
     }
     private fun getRooms(rooms: ArrayList<Room>) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "getrooms-mobile")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "getrooms-mobile", "GET", true, null)
         Log.e("TAG", result)
         val roomsArray = JSONObject(result).getJSONArray("rooms")
         for(i in 0 until roomsArray.length()) {
@@ -164,22 +149,7 @@ class MessengerListActivity : AppCompatActivity() {
         runOnUiThread {roomsList?.adapter?.notifyDataSetChanged()}
     }
     private fun getChatRooms(rooms: ArrayList<ChatRoom>) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "getchatrooms-mobile")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "getchatrooms-mobile", "GET", true, null)
         val roomsArray = JSONObject(result).getJSONArray("rooms")
         for(i in 0 until roomsArray.length()) {
             rooms.add(ChatRoom(

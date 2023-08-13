@@ -25,11 +25,7 @@ class FriendsAdapter(private val items: ArrayList<Friend>) : RecyclerView.Adapte
             holder.friend?.visibility = View.GONE
             holder.friend?.layoutParams?.width = 0
         }
-        if(item.name.length >= 8) {
-            holder.name?.text = item.name.substring(0, 8) + "..."
-        } else {
-            holder.name?.text = item.name
-        }
+        holder.name?.text = Utils.shortName(item.name, 9)
         val color = Utils().generateRandomNeonColor()
         Log.e("TAG", color.toString())
         holder.name?.setTextColor(color)

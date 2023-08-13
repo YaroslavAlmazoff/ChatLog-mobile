@@ -42,21 +42,7 @@ class MembersAdapter(private val people: ArrayList<User>, private val id: String
             notifyItemRangeChanged(position, people.size)
             Thread {
                 try {
-                    val url = URL(Constants().SITE_NAME + "exclude/$id/${user.id}")
-                    val connection = url.openConnection() as HttpsURLConnection
-                    connection.requestMethod = "DELETE"
-                    connection.doOutput = true
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.setRequestProperty("Accept-Charset", "utf-8")
-                    connection.setRequestProperty("Authorization", "Bearer ${userData?.getString("token")}")
-                    var data: Int = connection.inputStream.read()
-                    var result = ""
-                    var byteArr = byteArrayOf()
-                    while(data != -1) {
-                        result += data.toChar().toString()
-                        byteArr.plus(data.toByte())
-                        data = connection.inputStream.read()
-                    }
+                    val result = Utils.request(it.context, "exclude/$id/${user.id}", "DELETE", true, null)
                     activity.runOnUiThread {
                         if(JSONObject(result).getJSONArray("errors").length() != 0) {
                             Toast.makeText(it.context, JSONObject(result).getJSONArray("errors").getString(0), Toast.LENGTH_LONG).show()

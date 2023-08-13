@@ -52,7 +52,7 @@ class PeopleAdapter(private val people: ArrayList<User>, private val userData: J
     private fun createRoom(id: String, context: Context) {
         Thread {
             try {
-                val result = URL(Constants().SITE_NAME + "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/$id").readText(Charsets.UTF_8)
+                val result = Utils.request(context, "createroom-mobile/${userData.getJSONObject("user").getString("_id")}/$id", "GET", true, null)
                 Log.e("TAG", result)
                 activity.runOnUiThread {
                     if(JSONObject(result).getInt("err") == 0 || JSONObject(result).getInt("err") == 1) {

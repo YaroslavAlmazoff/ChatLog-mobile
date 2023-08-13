@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -64,7 +65,7 @@ class RecipientsActivity : AppCompatActivity() {
         }.start()
     }
     private fun getUsers(users: ArrayList<User>) {
-        val usersData = URL(Constants().SITE_NAME + "userfriends/${userData?.getJSONObject("user")?.getString("_id")}").readText(Charsets.UTF_8)
+        val usersData = Utils.request(this, "userfriends/${userData?.getJSONObject("user")?.getString("_id")}", "GET", true, null)
         val usersArray = JSONObject(usersData).getJSONArray("friends")
         Log.e("TAG", usersData)
         for(i in 0 until usersArray.length()) {

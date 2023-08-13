@@ -15,6 +15,7 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.net.ssl.HttpsURLConnection
 import kotlin.math.floor
 
 class Utils {
@@ -177,6 +178,70 @@ class Utils {
             }
 
             return resultList
+        }
+
+        fun request(context: Context, url: String, method: String, tokenRequired: Boolean, json: String?): String {
+            return try {
+                val token = updateToken(context)
+                val url = URL(Constants().SITE_NAME + url)
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = method
+                connection.doOutput = method == "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept-Charset", "utf-8")
+                Log.e("TAG", token.toString())
+                Log.e("TAG", tokenRequired.toString())
+                if (tokenRequired) {
+                    connection.setRequestProperty("Authorization", "Bearer $token")
+                }
+
+                if(json != null) {
+                    connection.outputStream.write(json.toByteArray())
+                }
+
+                val reader = BufferedReader(InputStreamReader(connection.inputStream, "UTF-8"))
+                var line: String? = reader.readLine()
+                var result = ""
+                while (line != null) {
+                    result += line
+                    line = reader.readLine()
+                }
+                reader.close()
+                return result
+            }
+            catch(e: InterruptedException) {
+                Log.e("TAG", "Error")
+                return ""
+            }
+        }
+
+        fun updateToken(context: Context): String {
+            val util = Utils()
+            val userData = JSONObject(util.readUserFile(File(context.filesDir, util.userFileName)))
+            val refreshToken = userData?.getString("refreshToken")
+            val url = URL(Constants().SITE_NAME + "refresh-mobile")
+            val connection = url.openConnection() as HttpsURLConnection
+            connection.requestMethod = "GET"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Accept-Charset", "utf-8")
+            connection.setRequestProperty("Authorization", "Bearer $refreshToken")
+            var data: Int = connection.inputStream.read()
+            var result = ""
+            var byteArr = byteArrayOf()
+            while(data != -1) {
+                result += data.toChar().toString()
+                byteArr.plus(data.toByte())
+                data = connection.inputStream.read()
+            }
+
+            val token = JSONObject(result).getString("token")
+            var user = userData.toString()
+            var userWithToken = user.substring(0, user.length - 1)
+            userWithToken += ", \"token\": \"$token\", \"refreshToken\": \"${JSONObject(result).getString("refreshToken")}\" }"
+            Log.e("TAG", userWithToken)
+            val userFile = File(context.filesDir, util.userFileName)
+            util.writeToUserFile(userFile, userWithToken.toByteArray())
+            return token
         }
     }
 }

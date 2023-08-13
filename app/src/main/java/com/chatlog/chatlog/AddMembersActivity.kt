@@ -31,9 +31,7 @@ class AddMembersActivity : AppCompatActivity() {
         pb = findViewById(R.id.pb)
 
         findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.back_button).setOnClickListener {
-            val myIntent = Intent(this, DiscussionSettingsActivity::class.java)
-            myIntent.putExtra("id", intent.getStringExtra("id")!!)
-            startActivity(myIntent)
+            onBackPressed()
         }
 
         getMembers()
@@ -64,8 +62,7 @@ class AddMembersActivity : AppCompatActivity() {
         }.start()
     }
     private fun getUsers(adapter: AddMembersAdapter) {
-        Log.e("TAG", "in getUsers")
-        val usersData = URL(Constants().SITE_NAME + "userfriends/${userData?.getJSONObject("user")?.getString("_id")}").readText(Charsets.UTF_8)
+        val usersData = Utils.request(this, "userfriends/${userData?.getJSONObject("user")?.getString("_id")}", "GET", false, null)
         val usersDataArray = JSONObject(usersData).getJSONArray("friends")
         Log.e("TAG", usersData)
         for(i in 0 until usersDataArray.length()) {

@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -20,6 +21,8 @@ class PublicCommentsActivity : AppCompatActivity() {
     var commentsList: RecyclerView? = null
     var noComments: TextView? = null
     var commentField: EditText? = null
+
+    var publicId: String = ""
 
     var userData: JSONObject? = null
     var pb: ProgressBar? = null
@@ -44,6 +47,7 @@ class PublicCommentsActivity : AppCompatActivity() {
         pb = findViewById(R.id.pb)
 
         val postId = intent.getStringExtra("id")
+        publicId = intent.getStringExtra("public")!!
 
         commentsList = findViewById(R.id.comments_list)
         val goBackButton = findViewById<Button>(R.id.go_back)
@@ -51,14 +55,7 @@ class PublicCommentsActivity : AppCompatActivity() {
         noComments = findViewById(R.id.no_comments)
         commentField = findViewById(R.id.comment_field)
         var commentsArray: ArrayList<Comment> = ArrayList()
-        commentsArray.add(Comment("useless", "useless", "useless", "user.png"))
-        if (postId != null) {
-            getCommentsInBackground(commentsArray, postId)
-            if(commentsArray.size == 0) {
-                commentsList?.visibility = View.GONE
-                noComments?.visibility = View.VISIBLE
-            }
-        }
+
         goBackButton.setOnClickListener {
             val intent = Intent(it.context, HomeActivity::class.java)
             it.context.startActivity(intent)
@@ -76,13 +73,13 @@ class PublicCommentsActivity : AppCompatActivity() {
             }.start()
         }
 
-        commentsList?.smoothScrollBy(-commentsList!!.computeVerticalScrollOffset(), 0)
+        commentsList?.adapter = CommentsAdapter(commentsArray)
+        commentsList?.layoutManager = LinearLayoutManager(this)
 
-        val lm = LinearLayoutManager(this)
-        lm.orientation = LinearLayoutManager.VERTICAL
-        commentsList?.layoutManager = lm
-        val adapter = CommentsAdapter(commentsArray)
-        commentsList?.adapter = adapter
+        //commentsList?.smoothScrollBy(-commentsList!!.computeVerticalScrollOffset(), 0)
+        if (postId != null) {
+            getCommentsInBackground(commentsArray, postId)
+        }
     }
 
     private fun getCommentsInBackground(comments: ArrayList<Comment>, id: String) {
@@ -97,9 +94,11 @@ class PublicCommentsActivity : AppCompatActivity() {
             }
         }.start()
     }
+    @SuppressLint("NotifyDataSetChanged")
     private fun getComments(comments: ArrayList<Comment>, id: String) {
-        val json = URL(Constants().SITE_NAME + "public/comments/${id}").readText(Charsets.UTF_8)
-        val commentsArray = JSONObject(json).getJSONArray("comments")
+        val result = Utils.request(this, "public/comments/$id", "GET", true, null)
+        Log.e("TAG", result)
+        val commentsArray = JSONObject(result).getJSONArray("comments")
         for(i in 0 until commentsArray.length()) {
             comments.add(
                 Comment(
@@ -109,34 +108,33 @@ class PublicCommentsActivity : AppCompatActivity() {
                     commentsArray.getJSONObject(i).getString("avatarUrl"),
                 ))
         }
-    }
-    private fun sendComment(id: String, comments: ArrayList<Comment>) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "public/comment/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-        val json = "{\"text\": \"${commentField?.text.toString()}\"}"
-        connection.outputStream.write(json.toByteArray())
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
+
+        comments.reverse()
+
+        runOnUiThread {
+            commentsList?.adapter?.notifyDataSetChanged()
+            if(commentsArray.length() == 0) {
+                commentsList?.visibility = View.GONE
+                noComments?.visibility = View.VISIBLE
+            }
         }
+    }
+    @SuppressLint("NotifyDataSetChanged")
+    private fun sendComment(id: String, comments: ArrayList<Comment>) {
+        val json = "{\"text\": \"${commentField?.text.toString()}\", \"date\": \"${Utils().getCurrentDate()}\", \"pub\": \"$publicId\"}"
+        val result = Utils.request(this, "public/comment/$id", "POST", true, json)
         Log.e("TAG", result)
         val responseComment = JSONObject(result).getJSONObject("comment")
-        comments.add(Comment(
+        comments.add(0, Comment(
             responseComment.getString("userName"),
             responseComment.getString("text"),
             responseComment.getString("date"),
             responseComment.getString("avatarUrl")
         ))
         commentField?.setText("")
+
+        runOnUiThread {
+            commentsList?.adapter?.notifyDataSetChanged()
+        }
     }
 }

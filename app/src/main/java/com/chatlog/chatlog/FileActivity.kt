@@ -220,26 +220,7 @@ class FileActivity : AppCompatActivity() {
     private fun deleteInBackground(id: String) {
         Thread {
             try {
-                val token = userData?.getString("token")
-                val url = URL(Constants().SITE_NAME + "cloud/delete-mobile/${id}")
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.requestMethod = "DELETE"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
+                val result = Utils.request(this, "cloud/delete-mobile/${id}", "DELETE", true, null)
                 Log.e("TAG", result)
                 val response = JSONObject(result).getBoolean("deleted")
                 runOnUiThread {
@@ -258,31 +239,7 @@ class FileActivity : AppCompatActivity() {
     private fun getTextInBackground(id: String, mode: String) {
         Thread {
             try {
-                val token = userData?.getString("token")
-                var url: URL? = if(mode == "text") {
-                    URL(Constants().SITE_NAME + "cloud/filetext/${id}")
-                } else {
-                    URL(Constants().SITE_NAME + "cloud/hardfiletext/${id}")
-                }
-
-                val connection = url?.openConnection() as HttpsURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
+                val result = Utils.request(this, if(mode == "text") "cloud/filetext/${id}" else "cloud/hardfiletext/${id}", "GET", true, null)
                 Log.e("TAG", result)
                 val fileText = JSONObject(result).getString("text")
                 val err = JSONObject(result).getBoolean("err")
@@ -337,27 +294,7 @@ class FileActivity : AppCompatActivity() {
     private fun getExcel(id: String) {
         Thread {
             try {
-                val token = userData?.getString("token")
-                var url = URL(Constants().SITE_NAME + "cloud/excel/${id}")
-
-                val connection = url?.openConnection() as HttpsURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept-Charset", "utf-8")
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                val inputStream = connection.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                var line: String? = reader.readLine()
-                var result = ""
-
-                while (line != null) {
-                    result += line
-                    line = reader.readLine()
-                }
-
-                reader.close()
-                connection.disconnect()
+                val result = Utils.request(this, "cloud/excel/${id}", "GET", true, null)
                 Log.e("TAG", result)
                 val data = JSONObject(result).getJSONArray("data")
                 val err = JSONObject(result).getBoolean("err")

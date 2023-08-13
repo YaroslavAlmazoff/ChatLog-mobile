@@ -53,23 +53,9 @@ class LoginActivity : AppCompatActivity() {
         }.start()
     }
     private fun sendData() {
-        val url = URL(Constants().SITE_NAME + "auth/login-mobile")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
         val json = "{\"email\": \"${emailField?.text.toString()}\", " +
                 "\"password\": \"${passwordField?.text.toString()}\"}"
-        connection.outputStream.write(json.toByteArray())
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        var byteArr = byteArrayOf()
-        while(data != -1) {
-            result += data.toChar().toString()
-            byteArr.plus(data.toByte())
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "auth/login-mobile", "POST", false, json)
         if(JSONObject(result).getJSONArray("errors").length() > 0) {
             runOnUiThread {
                 Toast.makeText(this, R.string.login_error, Toast.LENGTH_SHORT).show()

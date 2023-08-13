@@ -102,21 +102,6 @@ class UserActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
-        if (isOwner) {
-            notificationIcon.visibility = View.VISIBLE
-
-            notificationIcon.setOnClickListener {
-                if(isNotificationsDisplay) {
-                    notificationsList?.visibility = View.GONE
-                    isNotificationsDisplay = false
-                } else {
-                    notificationsList?.visibility = View.VISIBLE
-                    isNotificationsDisplay = true
-                }
-            }
-        }
-
         makeFriendsButton?.setOnClickListener {
             if (userId != null) {
                 makeFriendsInBackground(userId)
@@ -141,6 +126,20 @@ class UserActivity : AppCompatActivity() {
         } else {
             notOwnerOptions.visibility = View.VISIBLE
             ownerOptions.visibility = View.GONE
+        }
+
+        if (isOwner) {
+            notificationIcon.visibility = View.VISIBLE
+
+            notificationIcon.setOnClickListener {
+                if(isNotificationsDisplay) {
+                    notificationsList?.visibility = View.GONE
+                    isNotificationsDisplay = false
+                } else {
+                    notificationsList?.visibility = View.VISIBLE
+                    isNotificationsDisplay = true
+                }
+            }
         }
 
 
@@ -191,13 +190,11 @@ class UserActivity : AppCompatActivity() {
         }.start()
     }
     private fun getUser(id: String) {
-        val userString = URL(Constants().SITE_NAME + "user/$id").readText(Charsets.UTF_8)
+        val userString = Utils.request(this,  "user/$id", "GET", true, null)
         Log.e("TAG", userString)
         val user = JSONObject(userString).getJSONObject("user")
         Log.e("TAG", user.getString("bannerUrl"))
         Log.e("TAG", user.getString("avatarUrl"))
-        val bitmap = BitmapFactory.decodeStream(URL(Constants().SITE_NAME_FILES + "/userbanners/${user.getString("bannerUrl")}").content as InputStream)
-        val banner: Drawable = BitmapDrawable(resources, bitmap)
         runOnUiThread {
             userName?.text = user.getString("name")
             if(user.getString("age").isNotEmpty()) {
@@ -217,11 +214,17 @@ class UserActivity : AppCompatActivity() {
                 Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${user.getString("avatarUrl")}").into(userAvatar)
                 userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
             }
-            userHead?.background = banner
+            if(user.getString("bannerUrl") != "") {
+               Thread {
+                   val bitmap = BitmapFactory.decodeStream(URL(Constants().SITE_NAME_FILES + "/userbanners/${user.getString("bannerUrl")}").content as InputStream)
+                   val banner: Drawable = BitmapDrawable(resources, bitmap)
+                   runOnUiThread { userHead?.background = banner }
+               }.start()
+            }
         }
     }
     private fun getFriends(id: String, friends: ArrayList<Friend>) {
-        val friendsArray = URL(Constants().SITE_NAME + "userfriends/$id").readText(Charsets.UTF_8)
+        val friendsArray = Utils.request(this, "userfriends/$id", "GET", true, null)
         val jsonFriends = JSONObject(friendsArray).getJSONArray("friends")
         for(i in 0 until jsonFriends.length()) {
             friends.add(Friend(jsonFriends.getJSONObject(i).getString("name"),
@@ -234,20 +237,7 @@ class UserActivity : AppCompatActivity() {
         }
     }
     private fun checkNotifications(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "checknotifications/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "checknotifications/$id", "GET", true, null)
         Log.e("TAG", JSONObject(result).getBoolean("message").toString())
         friendsNotifications = JSONObject(result).getBoolean("message")
         if(friendsNotifications) {
@@ -259,20 +249,7 @@ class UserActivity : AppCompatActivity() {
         }
     }
     private fun checkFriends(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "checkfriends/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "checkfriends/$id", "GET", true, null)
         Log.e("TAG", JSONObject(result).getBoolean("message").toString())
         isFriends = JSONObject(result).getBoolean("message")
         if(isFriends) {
@@ -297,20 +274,7 @@ class UserActivity : AppCompatActivity() {
     }
 
     private fun deleteFriend(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "deletefriend/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "DELETE"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "deletefriend/$id", "DELETE", true, null)
         runOnUiThread {
             Toast.makeText(this, R.string.removed_from_friends, Toast.LENGTH_SHORT).show()
             removeFromFriends?.visibility = View.GONE
@@ -328,20 +292,7 @@ class UserActivity : AppCompatActivity() {
         }.start()
     }
     private fun makeFriends(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "makefriends/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "makefriends/$id", "GET", true, null)
         runOnUiThread {
             Toast.makeText(this, R.string.friends_request, Toast.LENGTH_SHORT).show()
             makeFriendsButton?.visibility = View.GONE
@@ -358,20 +309,7 @@ class UserActivity : AppCompatActivity() {
         }.start()
     }
     private fun checkRooms(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "checkrooms/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "checkrooms/$id", "GET", true, null)
         isRoomExists = JSONObject(result).getBoolean("exists")
         if(isRoomExists) {
             val intent = Intent(this, MessengerActivity::class.java)
@@ -382,37 +320,11 @@ class UserActivity : AppCompatActivity() {
         }
     }
     private fun createRoom(id: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "createroom/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "createroom/$id", "GET", true, null)
         getRoom(id, result)
     }
     private fun getRoom(id: String, resultData: String) {
-        val token = userData?.getString("token")
-        val url = URL(Constants().SITE_NAME + "getroom/$id")
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept-Charset", "utf-8")
-        connection.setRequestProperty("Authorization", "Bearer $token")
-
-        var data: Int = connection.inputStream.read()
-        var result = ""
-        while(data != -1) {
-            result += data.toChar().toString()
-            data = connection.inputStream.read()
-        }
+        val result = Utils.request(this, "getroom/$id", "GET", true, null)
         val err = JSONObject(resultData).getInt("err")
         if(err == 1) {
             val intent = Intent(this, MessengerActivity::class.java)
@@ -425,7 +337,7 @@ class UserActivity : AppCompatActivity() {
         }
     }
     private fun getNotifications(id: String, notifications: ArrayList<Notification>) {
-        val notificationsData = URL(Constants().SITE_NAME + "getnotifications/$id").readText(Charsets.UTF_8)
+        val notificationsData = Utils.request(this, "getnotifications/$id", "GET", true, null)
         Log.e("TAG", notificationsData)
         val notificationsArray = JSONObject(notificationsData).getJSONArray("notifications")
         Log.e("TAG", notificationsArray.toString())
@@ -442,7 +354,7 @@ class UserActivity : AppCompatActivity() {
 
     }
     private fun getPosts(posts: ArrayList<NewsItem>, id: String) {
-        val newsData = URL(Constants().SITE_NAME + "getuserpostsmobile/$id").readText(Charsets.UTF_8)
+        val newsData = Utils.request(this, "getuserpostsmobile/$id", "GET", true, null)
         Log.e("TAG", newsData)
         val newsArray = JSONObject(newsData).getJSONArray("posts")
         for(i in 0 until newsArray.length()) {
@@ -455,7 +367,7 @@ class UserActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getInt("comments"),
                 newsArray.getJSONObject(i).getBoolean("liked"),
                 newsArray.getJSONObject(i).getJSONArray("images"),
-                newsArray.getJSONObject(i).getString("_id")
+                newsArray.getJSONObject(i).getString("_id"), "", ""
             ))
             Log.e("TAG", newsArray.getJSONObject(i).getString("title"))
         }

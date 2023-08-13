@@ -21,10 +21,12 @@ class NavigationActivity : AppCompatActivity() {
         val people = findViewById<View>(R.id.link_people)
         val games = findViewById<View>(R.id.link_games)
         val videos = findViewById<View>(R.id.link_videos)
-        val ads = findViewById<View>(R.id.link_ads)
-        val adverts = findViewById<View>(R.id.link_adverts)
+//        val ads = findViewById<View>(R.id.link_ads)
+//        val adverts = findViewById<View>(R.id.link_adverts)
         val cloud = findViewById<View>(R.id.link_cloud)
         val quit = findViewById<View>(R.id.link_quit)
+        val publics = findViewById<View>(R.id.link_publics)
+        val settings = findViewById<View>(R.id.link_settings)
 
         val util = Utils()
         user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
@@ -54,14 +56,14 @@ class NavigationActivity : AppCompatActivity() {
             val intent = Intent(this, VideohostActivity::class.java)
             startActivity(intent)
         }
-        ads.setOnClickListener {
-            val intent = Intent(this, AdsActivity::class.java)
-            startActivity(intent)
-        }
-        adverts.setOnClickListener {
-            val intent = Intent(this, AdvertsActivity::class.java)
-            startActivity(intent)
-        }
+//        ads.setOnClickListener {
+//            val intent = Intent(this, AdsActivity::class.java)
+//            startActivity(intent)
+//        }
+//        adverts.setOnClickListener {
+//            val intent = Intent(this, AdvertsActivity::class.java)
+//            startActivity(intent)
+//        }
         cloud.setOnClickListener {
             val intent = Intent(this, CloudActivity::class.java)
             startActivity(intent)
@@ -71,6 +73,15 @@ class NavigationActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
+        publics.setOnClickListener {
+            val intent = Intent(this, PublicsActivity::class.java)
+            startActivity(intent)
+        }
+        settings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
+
 
         findViewById<TextView>(R.id.delete_profile).setOnClickListener {
             val url = "https://chatlog.ru"

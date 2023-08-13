@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         Thread {
             try {
                 Log.e("TAG", userData.toString())
-                val token = userData?.getString("token")
                 val refreshToken = userData?.getString("refreshToken")
                 val url = URL(Constants().SITE_NAME + "refresh-mobile")
                 val connection = url.openConnection() as HttpsURLConnection
