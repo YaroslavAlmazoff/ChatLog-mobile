@@ -276,7 +276,7 @@ class UserActivity : AppCompatActivity() {
     private fun deleteFriend(id: String) {
         val result = Utils.request(this, "deletefriend/$id", "DELETE", true, null)
         runOnUiThread {
-            Toast.makeText(this, R.string.removed_from_friends, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.removed_from_friends, Toast.LENGTH_LONG).show()
             removeFromFriends?.visibility = View.GONE
             makeFriendsButton?.visibility = View.VISIBLE
         }
@@ -296,7 +296,8 @@ class UserActivity : AppCompatActivity() {
         runOnUiThread {
             Toast.makeText(this, R.string.friends_request, Toast.LENGTH_SHORT).show()
             makeFriendsButton?.visibility = View.GONE
-            removeFromFriends?.visibility = View.VISIBLE
+            alreadyInFriends?.visibility = View.VISIBLE
+            alreadyInFriends?.setText(R.string.waiting_for_friends)
         }
     }
     private fun checkRoomsInBackground(id: String) {
@@ -351,7 +352,7 @@ class UserActivity : AppCompatActivity() {
                 notificationsArray.getJSONObject(i).getString("postID"),
                 notificationsArray.getJSONObject(i).getString("_id")))
         }
-
+        notifications.reverse()
     }
     private fun getPosts(posts: ArrayList<NewsItem>, id: String) {
         val newsData = Utils.request(this, "getuserpostsmobile/$id", "GET", true, null)

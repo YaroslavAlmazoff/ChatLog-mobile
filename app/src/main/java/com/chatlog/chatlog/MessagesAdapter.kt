@@ -33,7 +33,7 @@ class MessagesAdapter(private val messages: ArrayList<Message>,
                       private var currentMessageText: String,
                       private var sendButton: ImageView,
                       private var editButton: com.sanojpunchihewa.glowbutton.GlowButton,
-var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IFilter {
+                      private var activity: Activity, private var type: String) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IFilter {
     private var filteredList = ArrayList<Message>(messages)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -43,82 +43,62 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val message = filteredList[position]
-        val color = Constants().neonColors[(Math.random()*6).roundToInt()]
-        holder.name?.text = message.name
-        holder.text?.text = message.message
-        holder.date?.text = message.date
-        holder.text?.setTextColor(Color.parseColor(color))
-        if(holder.avatar != null && message.avatarUrl != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${message.avatarUrl}").into(holder.avatar)
-            holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-        if(message.user == userData.getJSONObject("user").getString("_id")) {
-            holder.root?.background = context.getDrawable(R.drawable.my_message)
-        }
-        if(message.imageUrl != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/messagefotos/${message.imageUrl}").into(holder.image)
-            holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
-        } else {
-            if(message.uri != null) {
-                holder.image?.setImageURI(message.uri)
+
+        Log.e("TAG", holder.itemView.layoutParams.height.toString())
+
+        if(message.id != "") {
+            val color = Constants().neonColors[(Math.random()*6).roundToInt()]
+            holder.name?.text = message.name
+            holder.text?.text = message.message
+            holder.date?.text = message.date
+            holder.text?.setTextColor(Color.parseColor(color))
+            if(holder.avatar != null && message.avatarUrl != "") {
+                Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${message.avatarUrl}").into(holder.avatar)
+                holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
+            }
+            if(message.user == userData.getJSONObject("user").getString("_id")) {
+                holder.root?.background = context.getDrawable(R.drawable.my_message)
+            }
+            if(message.imageUrl != "") {
+                Picasso.get().load(Constants().SITE_NAME_FILES + "/messagefotos/${message.imageUrl}").into(holder.image)
                 holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
+            } else {
+                if(message.uri != null) {
+                    holder.image?.setImageURI(message.uri)
+                    holder.image?.scaleType = ImageView.ScaleType.CENTER_CROP
+                }
             }
-        }
-        if(message.videoUrl != "") {
-            val uri = Uri.parse(Constants().SITE_NAME_FILES + "/messagevideos/${message.videoUrl}")
-            Glide.with(context)
-                .load(uri)
-                .into(holder.thumbnail!!)
-            holder.video?.visibility = View.VISIBLE
-            holder.video?.setOnClickListener {
-                val intent = Intent(it.context, MessageVideoActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.putExtra("videoUrl", message.videoUrl)
-                intent.putExtra("isUri", false)
-                context.startActivity(intent)
-            }
-        } else {
-            if(message.videoUri != null) {
-                Log.e("TAG", message.videoUri?.toString()!!)
+            if(message.videoUrl != "") {
+                val uri = Uri.parse(Constants().SITE_NAME_FILES + "/messagevideos/${message.videoUrl}")
+                Glide.with(context)
+                    .load(uri)
+                    .into(holder.thumbnail!!)
                 holder.video?.visibility = View.VISIBLE
                 holder.video?.setOnClickListener {
                     val intent = Intent(it.context, MessageVideoActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    intent.putExtra("videoUri", message.videoUri.toString())
-                    intent.putExtra("isUri", true)
+                    intent.putExtra("videoUrl", message.videoUrl)
+                    intent.putExtra("isUri", false)
+                    intent.putExtra("id", activity.intent.getStringExtra("id"))
+                    intent.putExtra("type", type)
                     context.startActivity(intent)
                 }
-            }
-        }
-        if(message.audioUrl != "") {
-            var mediaPlayer: MediaPlayer? = null
-            holder.audio?.visibility = View.VISIBLE
-            holder.playAudio?.setOnClickListener {
-                holder.playAudio?.visibility = View.GONE
-                holder.stopAudio?.visibility = View.VISIBLE
-                holder.audioPlaying?.visibility = View.VISIBLE
-                mediaPlayer = MediaPlayer()
-                mediaPlayer?.setDataSource(Constants().SITE_NAME_FILES + "/messageaudios/${message.audioUrl}")
-                mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
-                mediaPlayer?.prepare()
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener {
-                    mediaPlayer?.start()
+            } else {
+                if(message.videoUri != null) {
+                    Log.e("TAG", message.videoUri?.toString()!!)
+                    holder.video?.visibility = View.VISIBLE
+                    holder.video?.setOnClickListener {
+                        val intent = Intent(it.context, MessageVideoActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        intent.putExtra("videoUri", message.videoUri.toString())
+                        intent.putExtra("isUri", true)
+                        intent.putExtra("id", activity.intent.getStringExtra("id"))
+                        intent.putExtra("type", type)
+                        context.startActivity(intent)
+                    }
                 }
             }
-            holder.stopAudio?.setOnClickListener {
-                holder.stopAudio?.visibility = View.GONE
-                holder.playAudio?.visibility = View.VISIBLE
-                holder.audioPlaying?.visibility = View.GONE
-                Log.e("TAG", "audio stopped")
-                if (mediaPlayer?.isPlaying == true) {
-                    mediaPlayer?.stop()
-                    mediaPlayer?.reset()
-                    mediaPlayer?.release()
-                }
-            }
-        } else {
-            if(message.audioUri != null) {
+            if(message.audioUrl != "") {
                 var mediaPlayer: MediaPlayer? = null
                 holder.audio?.visibility = View.VISIBLE
                 holder.playAudio?.setOnClickListener {
@@ -126,7 +106,7 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
                     holder.stopAudio?.visibility = View.VISIBLE
                     holder.audioPlaying?.visibility = View.VISIBLE
                     mediaPlayer = MediaPlayer()
-                    mediaPlayer?.setDataSource(message.audioUri?.toString())
+                    mediaPlayer?.setDataSource(Constants().SITE_NAME_FILES + "/messageaudios/${message.audioUrl}")
                     mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
                     mediaPlayer?.prepare()
                     mediaPlayer?.start()
@@ -145,82 +125,119 @@ var activity: Activity) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>(), IF
                         mediaPlayer?.release()
                     }
                 }
+            } else {
+                if(message.audioUri != null) {
+                    var mediaPlayer: MediaPlayer? = null
+                    holder.audio?.visibility = View.VISIBLE
+                    holder.playAudio?.setOnClickListener {
+                        holder.playAudio?.visibility = View.GONE
+                        holder.stopAudio?.visibility = View.VISIBLE
+                        holder.audioPlaying?.visibility = View.VISIBLE
+                        mediaPlayer = MediaPlayer()
+                        mediaPlayer?.setDataSource(message.audioUri?.toString())
+                        mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                        mediaPlayer?.prepare()
+                        mediaPlayer?.start()
+                        mediaPlayer?.setOnCompletionListener {
+                            mediaPlayer?.start()
+                        }
+                    }
+                    holder.stopAudio?.setOnClickListener {
+                        holder.stopAudio?.visibility = View.GONE
+                        holder.playAudio?.visibility = View.VISIBLE
+                        holder.audioPlaying?.visibility = View.GONE
+                        Log.e("TAG", "audio stopped")
+                        if (mediaPlayer?.isPlaying == true) {
+                            mediaPlayer?.stop()
+                            mediaPlayer?.reset()
+                            mediaPlayer?.release()
+                        }
+                    }
+                }
             }
-        }
-        if(message.message == "") {
-            holder.text?.visibility = View.GONE
-        }
-        if(message.user == userData.getJSONObject("user").getString("_id")) {
-            holder?.prefs?.visibility = View.VISIBLE
-            holder.prefs?.setOnClickListener {
-                holder.editMessage?.visibility = View.VISIBLE
-                holder.deleteMessage?.visibility = View.VISIBLE
+            if(message.message == "") {
+                holder.text?.visibility = View.GONE
+            }
+            if(message.user == userData.getJSONObject("user").getString("_id")) {
+                holder?.prefs?.visibility = View.VISIBLE
+                holder.prefs?.setOnClickListener {
+                    holder.editMessage?.visibility = View.VISIBLE
+                    holder.deleteMessage?.visibility = View.VISIBLE
+                    currentMessageId = message.id
+                    currentMessageText = message.message
+                }
+            } else {
+                holder?.prefs?.visibility = View.GONE
+            }
+            holder.editMessage?.setOnClickListener {
+                sendButton.visibility = View.GONE
+                editButton.visibility = View.VISIBLE
+                messageField.setText(message.message)
                 currentMessageId = message.id
                 currentMessageText = message.message
+                editing = true
             }
-        } else {
-            holder?.prefs?.visibility = View.GONE
-        }
-        holder.editMessage?.setOnClickListener {
-            sendButton.visibility = View.GONE
-            editButton.visibility = View.VISIBLE
-            messageField.setText(message.message)
-            currentMessageId = message.id
-            currentMessageText = message.message
-            editing = true
-        }
-        holder.deleteMessage?.setOnClickListener {
-            deleteMessageInBackground(message.id, position)
-            holder.editMessage?.visibility = View.GONE
-            holder.deleteMessage?.visibility = View.GONE
-        }
-        editButton.setOnClickListener {
-            holder.text?.text = messageField.text.toString()
-            val imm = context.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
-            sendButton.visibility = View.VISIBLE
-            editButton.visibility = View.GONE
-            holder.editMessage?.visibility = View.GONE
-            holder.deleteMessage?.visibility = View.GONE
-            messages[position].message = messageField.text.toString()
-            filter("")
-            editMessageInBackground(message.id)
-        }
-        if(message.videoUrl == "") {
-            holder?.video?.visibility = View.GONE
-        }
-        if(message.audioUrl == "") {
-            holder?.audio?.visibility = View.GONE
-        }
-        if(message.imageUrl == "") {
-            holder?.image?.visibility = View.GONE
-        }
+            holder.deleteMessage?.setOnClickListener {
+                deleteMessageInBackground(message.id, position)
+                holder.editMessage?.visibility = View.GONE
+                holder.deleteMessage?.visibility = View.GONE
+            }
+            editButton.setOnClickListener {
+                holder.text?.text = messageField.text.toString()
+                val imm = context.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
+                sendButton.visibility = View.VISIBLE
+                editButton.visibility = View.GONE
+                holder.editMessage?.visibility = View.GONE
+                holder.deleteMessage?.visibility = View.GONE
+                messages[position].message = messageField.text.toString()
+                filter("")
+                editMessageInBackground(message.id)
+            }
+            if(message.videoUrl == "") {
+                holder.video?.visibility = View.GONE
+            } else {
+                holder.video?.visibility = View.VISIBLE
+            }
+            if(message.audioUrl == "") {
+                holder.audio?.visibility = View.GONE
+            } else {
+                holder.audio?.visibility = View.VISIBLE
+            }
+            if(message.imageUrl == "") {
+                holder.image?.visibility = View.GONE
+            } else {
+                holder.image?.visibility = View.VISIBLE
+            }
 
-        if(message.fileLink != null && message.fileLink != "") {
-            holder.openButton?.visibility = View.VISIBLE
-            holder.openButton?.setOnClickListener {
-                Thread {
-                    try {
-                        val result = Utils.request(it.context, "cloud/file/${message.fileLink}", "GET", false, null)
-                        val file = JSONObject(result).getJSONObject("file")
-                        val intent = Intent(it.context, FileActivity::class.java)
-                        intent.putExtra("name", file.getString("name"))
-                        intent.putExtra("type", file.getString("type"))
-                        intent.putExtra("size", file.getString("size"))
-                        intent.putExtra("path", file.getString("path"))
-                        intent.putExtra("id", file.getString("_id"))
-                        intent.putExtra("ext", file.getString("ext"))
-                        intent.putExtra("preview", file.getString("previewUrl"))
-                        intent.putExtra("owner", file.getString("owner"))
-                        intent.putExtra("public", file.getBoolean("public"))
-                        it.context.startActivity(intent)
-                    } catch (e: InterruptedException) {
-                        Log.e("TAG", "error")
-                    }
-                }.start()
+            if(message.fileLink != null && message.fileLink != "") {
+                holder.openButton?.visibility = View.VISIBLE
+                holder.openButton?.setOnClickListener {
+                    Thread {
+                        try {
+                            val result = Utils.request(it.context, "cloud/file/${message.fileLink}", "GET", false, null)
+                            val file = JSONObject(result).getJSONObject("file")
+                            val intent = Intent(it.context, FileActivity::class.java)
+                            intent.putExtra("name", file.getString("name"))
+                            intent.putExtra("type", file.getString("type"))
+                            intent.putExtra("size", file.getString("size"))
+                            intent.putExtra("path", file.getString("path"))
+                            intent.putExtra("id", file.getString("_id"))
+                            intent.putExtra("ext", file.getString("ext"))
+                            intent.putExtra("preview", file.getString("previewUrl"))
+                            intent.putExtra("owner", file.getString("owner"))
+                            intent.putExtra("public", file.getBoolean("public"))
+                            it.context.startActivity(intent)
+                        } catch (e: InterruptedException) {
+                            Log.e("TAG", "error")
+                        }
+                    }.start()
+                }
+            } else {
+                holder.openButton?.visibility = View.GONE
             }
         } else {
-            holder.openButton?.visibility = View.GONE
+            holder.itemView.visibility = View.VISIBLE
         }
     }
 

@@ -1,24 +1,15 @@
 package com.chatlog.chatlog
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.location.LocationManager
 import android.media.MediaRecorder
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.annotation.RequiresApi
@@ -26,10 +17,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
@@ -47,15 +37,12 @@ import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.*
-import java.lang.IllegalStateException
-import java.net.URI
-import java.net.URL
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.HttpsURLConnection
 
 
 class MessengerActivity : AppCompatActivity() {
     var messagesList: RecyclerView? = null
+    var layoutManager: LinearLayoutManager? = null
     var userData: JSONObject? = null
     var headText: TextView? = null
     var headDate: TextView? = null
@@ -111,6 +98,8 @@ class MessengerActivity : AppCompatActivity() {
     var voiceText: TextView? = null
     var mediaRecorder: MediaRecorder? = null
 
+
+    var pb2: ProgressBar? = null
     var bgImage: ImageView? = null
 
     override fun onStop() {
@@ -186,46 +175,30 @@ class MessengerActivity : AppCompatActivity() {
         writeMessage = findViewById(R.id.write_message)
         voiceText = findViewById(R.id.voice_text)
 
-        pickImagesCancel = findViewById(R.id.pick_images_cancel)
 
         bgImage = findViewById(R.id.bg_image)
 
-        images = findViewById(R.id.images)
-        greed = findViewById(R.id.greed)
-        pickImages = findViewById(R.id.pick_images)
-
-        image = findViewById(R.id.image)
-        video = findViewById(R.id.video)
-
-        pickImagesCancel?.setOnClickListener {
-            pickImages?.visibility = View.GONE
-            uploadScreen?.visibility = View.GONE
-        }
-
         uploadImage?.setOnClickListener {
-            currentMode = "image"
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-            } else {
-                listFiles(currentMode)
-            }
-
+            val myIntent = Intent(this, SendImageActivity::class.java)
+            myIntent.putExtra("id", intent.getStringExtra("id"))
+            myIntent.putExtra("messengerType", "messenger")
+            myIntent.putExtra("fileType", "image")
+            startActivity(myIntent)
         }
         uploadVideo?.setOnClickListener {
-            currentMode = "video"
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-            } else {
-                listFiles(currentMode)
-            }
+            val myIntent = Intent(this, SendImageActivity::class.java)
+            myIntent.putExtra("id", intent.getStringExtra("id"))
+            myIntent.putExtra("messengerType", "messenger")
+            myIntent.putExtra("fileType", "video")
+            startActivity(myIntent)
         }
         uploadBg?.setOnClickListener {
-            currentMode = "bg"
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-            } else {
-                listFiles(currentMode)
-            }
+//            currentMode = "bg"
+//            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
+//                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
+//            } else {
+//                loadImageFiles()
+//            }
         }
         uploadAudio?.setOnClickListener {
             uploadScreen?.visibility = View.GONE
@@ -270,15 +243,16 @@ class MessengerActivity : AppCompatActivity() {
 
         pb = findViewById(R.id.pb)
         messagesArray = ArrayList()
-        adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!, this)
+        adapter = MessagesAdapter(messagesArray!!, applicationContext, userData!!, messageField!!, editing, currentMessageId!!, currentMessageText!!, sendImg!!, editButton!!, this, "messenger")
         sendImg?.setOnClickListener {
             sendMessageInBackground()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(messageField?.windowToken, 0)
         }
-
-        messagesList?.layoutManager = LinearLayoutManager(this)
+        layoutManager = LinearLayoutManager(this)
+        messagesList?.layoutManager = layoutManager
         messagesList?.adapter = adapter
+        messagesList?.isNestedScrollingEnabled = true
 
         getMessagesInBackground()
 
@@ -322,15 +296,6 @@ class MessengerActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.e("TAG", requestCode.toString())
         when (requestCode) {
-            101 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    listFiles(currentMode)
-                    currentMode = ""
-                } else {
-                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
-                }
-                return
-            }
             102 -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     startingRecording()
@@ -345,21 +310,6 @@ class MessengerActivity : AppCompatActivity() {
         }
     }
 
-    private fun listFiles(mode: String) {
-        if(mode == "image") {
-            var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-            rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        } else if(mode == "video") {
-            var cols = listOf(MediaStore.Video.Thumbnails.DATA).toTypedArray()
-            rs = contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        } else if(mode == "bg") {
-            var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-            rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        }
-        pickImages?.visibility = View.VISIBLE
-        greed?.adapter = ImagesAdapter(applicationContext, mode)
-    }
-
     fun getMessagesInBackground() {
         Thread {
             try {
@@ -370,8 +320,7 @@ class MessengerActivity : AppCompatActivity() {
                     messagesList?.adapter?.notifyDataSetChanged()
                     pb?.visibility = View.GONE
                     if(messagesArray?.isNotEmpty()!!) {
-                        messagesArray?.count()?.minus(1)
-                            ?.let { messagesList?.smoothScrollToPosition(it) }
+                        layoutManager?.stackFromEnd = true
                         if(messagesArray!![messagesArray?.count()?.minus(1)!!].user != null) {
                             if(userData?.getJSONObject("user")?.getString("_id") != messagesArray!![messagesArray?.count()?.minus(1)!!].user) {
                                 read()
@@ -413,6 +362,7 @@ class MessengerActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getJSONArray("readedThisMessage"),
                 null, null, null, usersArray.getJSONObject(i).getString("fileLink"),
             ))
+            Log.e("TAG", usersArray.getJSONObject(i).getString("imageUrl"))
         }
         runOnUiThread {
             adapter?.filter("")
@@ -430,8 +380,8 @@ class MessengerActivity : AppCompatActivity() {
         }
     }
     fun read() {
-        val result = Utils.request(this, "read/${intent.getStringExtra("id")!!}", "GET", true, null)
-        Log.e("TAG", result)
+       Thread { val result = Utils.request(this, "read/${intent.getStringExtra("id")!!}", "GET", true, null)
+           Log.e("TAG", result)}.start()
     }
     fun sendMessageInBackground() {
         Thread {
@@ -584,171 +534,6 @@ class MessengerActivity : AppCompatActivity() {
 
         override fun onClosed(willReconnect: Boolean) {
             Log.e("TAG", "reconnect? $willReconnect")
-        }
-    }
-    inner class ImagesAdapter : BaseAdapter {
-        var context: Context
-        var mode: String = "image"
-        constructor(context: Context, mode: String) {
-            this.context = context
-            this.mode = mode
-        }
-        override fun getCount(): Int {
-            return rs.count
-        }
-
-        override fun getItem(position: Int): Any {
-            return position
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            if(mode == "image") {
-                var iv = ImageView(context)
-                rs.moveToPosition(position)
-                var path = rs.getString(0)
-                var bitmap = BitmapFactory.decodeFile(path)
-                iv.setImageBitmap(bitmap)
-                iv.layoutParams = AbsListView.LayoutParams(300, 300)
-
-                iv.setOnClickListener {
-                    pickImagesCancel?.text = "Загрузка изображения..."
-                    Log.e("TAG", "Вы нажали на картинку $path")
-                    val f = File(filesDir, "file");
-                    f.createNewFile();
-
-                    val bitmap = bitmap;
-                    val bos = ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
-                    val bitmapData = bos.toByteArray();
-
-                    val fos = FileOutputStream(f);
-                    fos.write(bitmapData);
-                    fos.flush();
-                    fos.close();
-                    imageFile = f
-                    pickImages?.visibility = View.GONE
-                    uploadScreen?.visibility = View.GONE
-                    images?.visibility = View.VISIBLE
-                    image?.setImageURI(Uri.fromFile(imageFile))
-                    image?.visibility = View.VISIBLE
-                    pickImagesCancel?.text = "Отмена"
-                }
-
-                return iv
-            } else if (mode == "video") {
-                var iv = ImageView(context)
-                rs.moveToPosition(position)
-                var path = rs.getString(0)
-                var uri = Uri.parse("file://$path")
-                Glide.with(context)
-                    .load(uri)
-                    .into(iv)
-                iv.layoutParams = AbsListView.LayoutParams(300, 300)
-
-                iv.setOnClickListener {
-                    pickImagesCancel?.text = "Загрузка видео..."
-                    Thread {
-                        try {
-                            val file = File(filesDir, "file")
-                            val inputStream = contentResolver.openInputStream(uri)
-                            var outputStream: OutputStream? = null
-                            try {
-                                outputStream = FileOutputStream(file)
-                                var byteRead = inputStream?.read()
-                                while(byteRead  != -1) {
-                                    outputStream.write(byteRead!!)
-                                    byteRead = inputStream?.read()
-                                }
-                            } finally {
-                                inputStream?.close()
-                                outputStream?.close()
-                            }
-                            videoFile = file
-                        } catch (e: InterruptedException) {
-                            Log.e("TAG", "ERROR")
-                        }
-                    }.start()
-                    pickImages?.visibility = View.GONE
-                    uploadScreen?.visibility = View.GONE
-                    images?.visibility = View.VISIBLE
-                    Glide.with(context)
-                        .load(uri)
-                        .into(image!!)
-                    image?.visibility = View.VISIBLE
-                    pickImagesCancel?.text = "Отмена"
-                }
-
-                return iv
-            } else if (mode == "bg") {
-                var iv = ImageView(context)
-                rs.moveToPosition(position)
-                var path = rs.getString(0)
-                var bitmap = BitmapFactory.decodeFile(path)
-                iv.setImageBitmap(bitmap)
-
-                iv.layoutParams = AbsListView.LayoutParams(300, 300)
-
-                iv.setOnClickListener {
-                    pickImagesCancel?.text = "Загрузка изображения..."
-                    Log.e("TAG", "Вы нажали на картинку $path")
-                    val f = File(filesDir, "bgfile")
-                    f.createNewFile()
-
-                    val bitmap = bitmap
-                    val bos = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos)
-                    val bitmapData = bos.toByteArray()
-
-                    val fos = FileOutputStream(f)
-                    fos.write(bitmapData)
-                    fos.flush()
-                    fos.close()
-
-
-                    val interceptor = HttpLoggingInterceptor()
-                    interceptor.level = HttpLoggingInterceptor.Level.BODY
-
-                    val token = Utils.updateToken(it.context)
-
-                    val client = OkHttpClient.Builder()
-                        .addInterceptor(interceptor)
-                        .build()
-                    val retrofit = Retrofit.Builder()
-                        .baseUrl(Constants().SITE_NAME).client(client)
-                        .addConverterFactory(GsonConverterFactory.create()).build()
-                    val chatLogApi = retrofit.create(ChatLogApi::class.java)
-
-                    var requestFile: RequestBody? = null
-                    var body: MultipartBody.Part? = null
-
-                    if(f != null) {
-                        requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), f)
-                        body = MultipartBody.Part.createFormData("file", f.name, requestFile)
-                    }
-
-                    try {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            chatLogApi.sendRoomBg(
-                                intent.getStringExtra("id")!!,
-                                body, token
-                            )
-                        }
-                    } catch(e: IllegalStateException) {
-                        Log.e("TAG", "Ошибка но ничего страшного")
-                    }
-                    pickImages?.visibility = View.GONE
-                    uploadScreen?.visibility = View.GONE
-                    bgImage?.setImageBitmap(bitmap)
-                    pickImagesCancel?.text = "Отмена"
-                }
-
-                return iv
-            }
-            return ImageView(context)
         }
     }
 }

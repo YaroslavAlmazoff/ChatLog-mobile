@@ -65,6 +65,7 @@ class PublicCommentsActivity : AppCompatActivity() {
             Thread {
                 try {
                     if (postId != null) {
+                        pb?.visibility = View.VISIBLE
                         sendComment(postId, commentsArray)
                     }
                 } catch(e: InterruptedException) {
@@ -78,6 +79,7 @@ class PublicCommentsActivity : AppCompatActivity() {
 
         //commentsList?.smoothScrollBy(-commentsList!!.computeVerticalScrollOffset(), 0)
         if (postId != null) {
+            pb?.visibility = View.VISIBLE
             getCommentsInBackground(commentsArray, postId)
         }
     }
@@ -86,9 +88,6 @@ class PublicCommentsActivity : AppCompatActivity() {
         Thread {
             try {
                 getComments(comments, id)
-                runOnUiThread {
-                    pb?.visibility = View.GONE
-                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "Все плохо $e")
             }
@@ -113,6 +112,7 @@ class PublicCommentsActivity : AppCompatActivity() {
 
         runOnUiThread {
             commentsList?.adapter?.notifyDataSetChanged()
+            pb?.visibility = View.GONE
             if(commentsArray.length() == 0) {
                 commentsList?.visibility = View.GONE
                 noComments?.visibility = View.VISIBLE
@@ -131,10 +131,11 @@ class PublicCommentsActivity : AppCompatActivity() {
             responseComment.getString("date"),
             responseComment.getString("avatarUrl")
         ))
-        commentField?.setText("")
 
         runOnUiThread {
+            commentField?.setText("")
             commentsList?.adapter?.notifyDataSetChanged()
+            pb?.visibility = View.GONE
         }
     }
 }

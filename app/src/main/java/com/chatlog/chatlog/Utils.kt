@@ -3,11 +3,19 @@ package com.chatlog.chatlog
 import android.app.DownloadManager
 import android.content.*
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.os.StrictMode
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.content.ContextCompat.getSystemService
+import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+//import com.google.firebase.FirebaseApp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
@@ -182,7 +190,7 @@ class Utils {
 
         fun request(context: Context, url: String, method: String, tokenRequired: Boolean, json: String?): String {
             return try {
-                val token = updateToken(context)
+                val token = if(tokenRequired) updateToken(context) else ""
                 val url = URL(Constants().SITE_NAME + url)
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = method
@@ -217,7 +225,9 @@ class Utils {
 
         fun updateToken(context: Context): String {
             val util = Utils()
-            val userData = JSONObject(util.readUserFile(File(context.filesDir, util.userFileName)))
+            val a = util.readUserFile(File(context.filesDir, util.userFileName))
+            if(a == "") return ""
+            val userData = JSONObject(a)
             val refreshToken = userData?.getString("refreshToken")
             val url = URL(Constants().SITE_NAME + "refresh-mobile")
             val connection = url.openConnection() as HttpsURLConnection
@@ -242,6 +252,51 @@ class Utils {
             val userFile = File(context.filesDir, util.userFileName)
             util.writeToUserFile(userFile, userWithToken.toByteArray())
             return token
+        }
+
+        fun init(context: Context, user: String) {
+            val gfgPolicy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+            StrictMode.setThreadPolicy(gfgPolicy)
+            FirebaseApp.initializeApp(context)
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if(!task.isSuccessful) {
+                    Log.e("TAG", "Error")
+                    return@addOnCompleteListener
+                }
+                val token = task.result
+                Log.e("TAG", "Token -> $token, $user")
+                Thread {
+                    val result = request(context, "new-token/$token/$user", "GET", false, null)
+                    Log.e("TAG", result)
+                }.start()
+            }
+        }
+
+        fun isInternetAvailable(context: Context): Boolean {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork ?: return false
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+                return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            } else {
+                val activeNetworkInfo = connectivityManager.activeNetworkInfo
+                return activeNetworkInfo != null && activeNetworkInfo.isConnected
+            }
+        }
+
+        fun getPathFromUri(context: Context, uri: Uri): String? {
+            var path: String? = null
+            val projection = arrayOf(MediaStore.Images.Media.DATA)
+            val cursor = context.contentResolver.query(uri, projection, null, null, null)
+            cursor?.let {
+                it.moveToFirst()
+                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                path = cursor.getString(columnIndex)
+                cursor.close()
+            }
+            return path
         }
     }
 }

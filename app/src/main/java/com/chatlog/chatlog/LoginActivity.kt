@@ -8,6 +8,8 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
@@ -20,14 +22,22 @@ import javax.net.ssl.HttpsURLConnection
 class LoginActivity : AppCompatActivity() {
     var emailField: EditText? = null
     var passwordField: EditText? = null
+    var pb: ProgressBar? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        pb = findViewById(R.id.pb)
+
+        findViewById<TextView>(R.id.forgot).setOnClickListener {
+            startActivity(Intent(this, ForgotPassword::class.java))
+        }
     }
     private fun String.isEmailValid(): Boolean {
         return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
     fun login(view: View) {
+        pb?.visibility = View.VISIBLE
         emailField = findViewById(R.id.emailField)
         passwordField = findViewById(R.id.passwordField)
 
@@ -63,6 +73,7 @@ class LoginActivity : AppCompatActivity() {
             return
         }
         Utils().saveUserData(result, filesDir)
+        Utils.init(this, JSONObject(result).getString("userId"))
         runHomeActivity()
     }
     private fun runHomeActivity() {

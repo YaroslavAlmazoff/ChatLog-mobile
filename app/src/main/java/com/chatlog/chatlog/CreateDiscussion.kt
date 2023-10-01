@@ -12,10 +12,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,6 +52,9 @@ class CreateDiscussion : AppCompatActivity() {
     var imageFile: File? = null
     var userData: JSONObject? = null
 
+    var pb: ProgressBar? = null
+    var pb2: ProgressBar? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,50 +68,46 @@ class CreateDiscussion : AppCompatActivity() {
         cancelButton = findViewById(R.id.cancel_button)
         titleField = findViewById(R.id.title_field)
 
-        greed = findViewById(R.id.greed)
         pickImages = findViewById(R.id.pick_images)
         pickImagesCancel = findViewById(R.id.pick_images_cancel)
         image = findViewById(R.id.image)
 
-        pickImagesCancel?.setOnClickListener {
-            pickImages?.visibility = View.GONE
-        }
+        pb = findViewById(R.id.pb)
 
         uploadButton?.setOnClickListener {
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)!= PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 101)
-            } else {
-                listFiles()
-            }
+            pb?.visibility = View.VISIBLE
+            createButton?.visibility = View.GONE
+            selectImageLauncher.launch("image/*")
         }
         cancelButton?.setOnClickListener {
             onBackPressed()
         }
         createButton?.setOnClickListener {
+            pb?.visibility = View.VISIBLE
             createDiscussion()
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("TAG", requestCode.toString())
-        when (requestCode) {
-            101 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    listFiles()
-                } else {
-                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
+    private val selectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // Обработка выбранного изображения
+        if (uri != null) {
+            image?.setImageURI(uri)
+            Thread {
+                val inputStream = contentResolver.openInputStream(uri)
+                val file = File(cacheDir, "file") // Создаем временный файл
+                file.createNewFile()
+                val fos = FileOutputStream(file)
+
+                inputStream?.copyTo(fos)
+
+                imageFile = file
+
+                runOnUiThread {
+                    pb?.visibility = View.GONE
+                    createButton?.visibility = View.VISIBLE
                 }
-                return
-            }
+            }.start()
         }
-    }
-    private fun listFiles() {
-        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        pickImages?.visibility = View.VISIBLE
-        greed?.adapter = ImagesAdapter(applicationContext)
     }
 
 
@@ -126,8 +131,9 @@ class CreateDiscussion : AppCompatActivity() {
 
                 val token = Utils.updateToken(this)
 
-                if(imageFile != null) {
-                    requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
+                if (imageFile != null) {
+                    requestFile =
+                        RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
                     body = MultipartBody.Part.createFormData("file", imageFile?.name, requestFile)
                 } else {
                     val f = File(filesDir, "file")
@@ -143,7 +149,8 @@ class CreateDiscussion : AppCompatActivity() {
                     fos.flush()
                     fos.close()
                     imageFile = f
-                    requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
+                    requestFile =
+                        RequestBody.create("multipart/form-data".toMediaTypeOrNull(), imageFile!!)
                     body = MultipartBody.Part.createFormData("file", imageFile?.name, requestFile)
                 }
 
@@ -153,66 +160,17 @@ class CreateDiscussion : AppCompatActivity() {
                             titleField?.text.toString(), body, "Bearer $token"
                         )
                     }
-                } catch(e: IllegalStateException) {
+                } catch (e: IllegalStateException) {
                     Log.e("TAG", "Ошибка но ничего страшного")
                 } finally {
                     val intent = Intent(this, MessengerListActivity::class.java)
                     startActivity(intent)
                 }
-            } catch(e: InterruptedException) {
+            } catch (e: InterruptedException) {
                 Log.e("TAG", e.message!!)
             }
         }.start()
     }
 
 
-    inner class ImagesAdapter : BaseAdapter {
-        var context: Context
-        constructor(context: Context) {
-            this.context = context
-        }
-        override fun getCount(): Int {
-            return rs.count
-        }
-
-        override fun getItem(position: Int): Any {
-            return position
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                var iv = ImageView(context)
-                rs.moveToPosition(position)
-                var path = rs.getString(0)
-                var bitmap = BitmapFactory.decodeFile(path)
-                iv.setImageBitmap(bitmap)
-                iv.layoutParams = AbsListView.LayoutParams(300, 300)
-
-                iv.setOnClickListener {
-                    pickImagesCancel?.text = "Загрузка изображения..."
-                    Log.e("TAG", "Вы нажали на картинку $path")
-                    val f = File(filesDir, "file")
-                    f.createNewFile()
-
-                    val bitmap = bitmap
-                    val bos = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos)
-                    val bitmapData = bos.toByteArray()
-
-                    val fos = FileOutputStream(f)
-                    fos.write(bitmapData)
-                    fos.flush()
-                    fos.close()
-                    imageFile = f
-                    pickImages?.visibility = View.GONE
-                    image?.setImageURI(Uri.fromFile(imageFile))
-                    pickImagesCancel?.text = "Отмена"
-                }
-
-                return iv
-        }
-    }
 }

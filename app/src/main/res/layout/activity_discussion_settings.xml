@@ -200,6 +200,19 @@
             android:fontFamily="sans-serif-thin"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>
+        <ProgressBar
+            android:id="@+id/pb"
+            android:visibility="gone"
+            android:layout_marginTop="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttons"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:max="100" />
         <com.sanojpunchihewa.glowbutton.GlowButton
             android:id="@+id/add_button"
             android:layout_width="match_parent"
@@ -214,7 +227,7 @@
             android:layout_weight="1.2"
             app:buttonColor="@color/neon_blue"
             app:glowColor="@color/neon_blue"
-            app:layout_constraintTop_toBottomOf="@id/avatar_side"/>
+            app:layout_constraintTop_toBottomOf="@id/pb"/>
     </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/members_list"
@@ -223,40 +236,18 @@
         android:layout_marginBottom="70dp"
         app:layout_constraintTop_toBottomOf="@id/members_head"
         app:layout_constraintBottom_toBottomOf="parent" />
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/pick_images"
-        android:visibility="gone"
-        android:background="@color/transparent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:id="@+id/pick_images_cancel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:text="@string/cancel"
-            android:textSize="10pt"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="15dp"
-            android:textAlignment="center"
-            app:layout_constraintTop_toTopOf="parent" />
-        <GridView
-            android:id="@+id/greed"
-            android:numColumns="3"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="10dp"
-            app:layout_constraintTop_toTopOf="@id/pick_images_cancel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentDetails"
         class="com.chatlog.chatlog.Navigation"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/notifications"
+        class="com.chatlog.chatlog.Notifications"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"

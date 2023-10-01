@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
+import android.graphics.drawable.DrawableContainer
 import android.media.MediaMetadataRetriever
 import android.util.Log
 import android.view.LayoutInflater
@@ -147,9 +148,12 @@ class FilesAdapter(private val files: ArrayList<CloudFile>,
                     Log.e("TAG", Constants().SITE_NAME_FILES + path)
                     activity.runOnUiThread {Picasso.get().load(Constants().SITE_NAME_FILES + path).into(holder.image)}
                 } else {
-                    path = "/filesicons/${file.ext.lowercase()}.png"
-                    Log.e("TAG", Constants().SITE_NAME_FILES + path)
-                    activity.runOnUiThread {Picasso.get().load(Constants().SITE_NAME_FILES + path).into(holder.image)}
+//                    path = "/filesicons/${file.ext.lowercase()}.png"
+//                    Log.e("TAG", Constants().SITE_NAME_FILES + path)
+//                    activity.runOnUiThread {Picasso.get().load(Constants().SITE_NAME_FILES + path).into(holder.image)}
+                    activity.runOnUiThread {
+                        holder.image?.setImageResource(activity.resources.getIdentifier(file.ext, "drawable", activity.packageName))
+                    }
                 }
             } catch (e: InterruptedException) {
                 Log.e("TAG", "Error")

@@ -42,7 +42,7 @@ class GamesAdapter(private val games: ArrayList<Game>, private val userData: JSO
             it.context.startActivity(intent)
         }
         holder.download?.setOnClickListener {
-            Utils.downloadFile(game.title, Constants().SITE_NAME_FILES + "/gamedownloads/${game.downloadUrl}", it.context, "") {
+            Utils.downloadFile(game.title + ".apk", Constants().SITE_NAME_FILES + "/gamedownloads/${game.downloadUrl}", it.context, "") {
                 Toast.makeText(it.context, R.string.downloaded, Toast.LENGTH_LONG).show()
                 it.visibility = View.GONE
                 holder.downloaded?.visibility = View.VISIBLE

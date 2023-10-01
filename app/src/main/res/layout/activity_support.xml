@@ -53,7 +53,19 @@
         android:layout_height="wrap_content"
         android:paddingLeft="10dp"
         android:paddingRight="10dp">
-
+        <ProgressBar
+            android:id="@+id/pb"
+            android:visibility="gone"
+            android:layout_marginTop="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:max="100" />
         <com.sanojpunchihewa.glowbutton.GlowButton
             android:id="@+id/support_button"
             android:layout_width="match_parent"
@@ -71,8 +83,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/pb" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </LinearLayout>

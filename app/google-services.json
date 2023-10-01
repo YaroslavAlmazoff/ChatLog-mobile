@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "615126779447",
-    "project_id": "chatlog-mobile",
-    "storage_bucket": "chatlog-mobile.appspot.com"
+    "project_number": "100886841211",
+    "project_id": "chatloglast",
+    "storage_bucket": "chatloglast.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:615126779447:android:f6deb3d7a460fb2bdd21b2",
+        "mobilesdk_app_id": "1:100886841211:android:25e41bd8bde2a26d7a5fde",
         "android_client_info": {
           "package_name": "com.chatlog.chatlog"
         }
       },
       "oauth_client": [
         {
-          "client_id": "615126779447-ibsoue1da2m6ku7i71df84egthj2ugtu.apps.googleusercontent.com",
+          "client_id": "100886841211-m6014fga722ds9av219dfrb99350ruu9.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBeOUDTro16Pepv7lOps7v-TpQEKlFd8Jw"
+          "current_key": "AIzaSyBkTMMNTlaF-ks1ZLVCYzkVLXjuxv5lYOs"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "615126779447-ibsoue1da2m6ku7i71df84egthj2ugtu.apps.googleusercontent.com",
+              "client_id": "100886841211-m6014fga722ds9av219dfrb99350ruu9.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

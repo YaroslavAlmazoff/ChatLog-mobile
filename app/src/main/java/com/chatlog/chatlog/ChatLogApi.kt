@@ -13,11 +13,13 @@ interface ChatLogApi {
     @Multipart
     @POST("editprofile")
     suspend fun uploadImage(
-        @Part("name") name: String,
-        @Part("surname") surname: String,
-        @Part("age") age: String,
-        @Part("email") email: String,
-        @Part("aboutMe") aboutMe: String,
+        @Part("name") name: RequestBody,
+        @Part("surname") surname: RequestBody,
+        @Part("age") age: RequestBody,
+        @Part("email") email: RequestBody,
+        @Part("aboutMe") aboutMe: RequestBody,
+        @Part("city") city: RequestBody,
+        @Part("country") country: RequestBody,
         @Part file: MultipartBody.Part?,
         @Part file2: MultipartBody.Part?,
         @Header("Authorization") token: String,
@@ -29,8 +31,10 @@ interface ChatLogApi {
         @Path("id") id: String,
         @Part("name") name: RequestBody,
         @Part("description") description: RequestBody,
-        @Part file: MultipartBody.Part?,
-        @Part file2: MultipartBody.Part?,
+        @Part avatar: MultipartBody.Part?,
+        @Part banner: MultipartBody.Part?,
+        @Part("avatar") isAvatar: RequestBody,
+        @Part("banner") isBanner: RequestBody,
         @Header("Authorization") token: String,
     ): String
 
@@ -57,6 +61,20 @@ interface ChatLogApi {
     @Multipart
     @POST("new-messages/{id}")
     suspend fun sendMessage(
+        @Path("id") id: String,
+        @Part("message") message: RequestBody,
+        @Part("date") date: RequestBody,
+        @Part("isFile") isFile: RequestBody,
+        @Part file: MultipartBody.Part?,
+        @Part videoFile: MultipartBody.Part?,
+        @Part audioFile: MultipartBody.Part?,
+        @Part("fileLink") fileLink: RequestBody?,
+        @Header("Authorization") token: String,
+    ): String
+
+    @Multipart
+    @POST("new-chat-messages/{id}")
+    suspend fun sendChatMessage(
         @Path("id") id: String,
         @Part("message") message: RequestBody,
         @Part("date") date: RequestBody,

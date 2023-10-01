@@ -309,6 +309,18 @@
                 android:layout_marginBottom="100dp"
                 android:background="@color/transparent"
                 app:layout_constraintTop_toBottomOf="@+id/actions">
+                <ProgressBar
+                    android:id="@+id/pb"
+                    android:layout_marginTop="50dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:max="100" />
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/user_download"
                     android:visibility="gone"
@@ -486,6 +498,15 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentDetails"
         class="com.chatlog.chatlog.Navigation"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/notifications"
+        class="com.chatlog.chatlog.Notifications"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"

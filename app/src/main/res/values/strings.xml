@@ -105,7 +105,7 @@
     <string name="notification_check">Профиль</string>
     <string name="already_friends">Теперь вы друзья</string>
     <string name="rejected">Заявка в друзья отклонена</string>
-    <string name="file_ok">Файл не получен</string>
+    <string name="file_ok">Файл получен</string>
     <string name="file_rejected">Вы успешно получили файл</string>
     <string name="delete">Удалить</string>
 
@@ -194,4 +194,18 @@
     <string name="article_title_hint">Заголовок</string>
     <string name="update_public_title">Обновление группы</string>
     <string name="update_public_title_error">Введите название группы</string>
+
+    <string name="default_notification_channel_id">YOUR_DEFAULT_CHANNEL_ID</string>
+
+    <string name="no_internet_connection">Нет доступа в Интернет. Функция Offline-режим появится совсем скоро</string>
+    <string name="settings_delete_profile">Удалить профиль</string>
+    <string name="settings_change_password">Изменить пароль</string>
+    <string name="old_password_hint">Введите пароль</string>
+    <string name="new_password_hint">Введите новый пароль</string>
+    <string name="choose_image_to_send">Выберите изображения, которые хотели бы отправить</string>
+    <string name="choose_image">Выбрать изображение</string>
+    <string name="forgot_password">Для восстановления доступа к аккаунту перейдите по ссылке из письма, которое пришло к вам на почту</string>
+    <string name="forgot_your_password">Забыли пароль?</string>
+    <string name="return_access">Восстановление доступа</string>
+    <string name="button_continue">Продолжить</string>
 </resources>

@@ -62,11 +62,11 @@ class GamesActivity : AppCompatActivity() {
             }
         })
 
-        var util = Utils()
+        val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
         gamesList = findViewById(R.id.games_list)
-        var gamesArray: ArrayList<Game> = ArrayList()
+        val gamesArray: ArrayList<Game> = ArrayList()
 
         pb = findViewById(R.id.pb)
 

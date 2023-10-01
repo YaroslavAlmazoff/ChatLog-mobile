@@ -41,6 +41,8 @@ class FileActivity : AppCompatActivity() {
     var userDownload: View? = null
     var userDownloadText: TextView? = null
 
+    var pb: ProgressBar? = null
+
     var send: View? = null
     var sendLink: View? = null
     var edit: View? = null
@@ -74,6 +76,8 @@ class FileActivity : AppCompatActivity() {
         val preview = intent.getStringExtra("preview")!!
         val owner = intent.getStringExtra("owner")!!
         val public = intent.getBooleanExtra("public", false)
+
+        pb = findViewById(R.id.pb)
 
         userDownload = findViewById(R.id.user_download)
 
@@ -214,6 +218,7 @@ class FileActivity : AppCompatActivity() {
             imageWrapper?.visibility = View.VISIBLE
             image?.setImageResource(resources.getIdentifier(ext, "drawable", packageName))
         }
+        pb?.visibility = View.GONE
     }
 
 

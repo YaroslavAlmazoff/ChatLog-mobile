@@ -8,9 +8,11 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,13 +37,16 @@ class PublicActivity : AppCompatActivity() {
     var notificationsList: RecyclerView? = null
     var notifications: ArrayList<PublicNotification> = ArrayList()
 
+    var subscribeButton: Button? = null
+
+    var isSubscriber: Boolean = false
+
     var id: String? = null
     var name: String? = null
     var description: String? = null
     var avatarUrl: String? = null
     var bannerUrl: String? = null
     var admin: String? = null
-    var isSubscriber: Boolean? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_public)
@@ -81,8 +86,8 @@ class PublicActivity : AppCompatActivity() {
         val editPublicIcon = findViewById<ImageView>(R.id.edit_icon)
 
 
-        val subscribeButton = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.subscribe_button)
-        subscribeButton.text = if(isSubscriber!!) resources.getString(R.string.unscribe) else resources.getString(R.string.subscribe)
+        subscribeButton = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.subscribe_button)
+        subscribeButton?.text = if(isSubscriber) resources.getString(R.string.unscribe) else resources.getString(R.string.subscribe)
         val avatar = findViewById<ImageView>(R.id.public_avatar)
         if(avatar != null && avatarUrl != "") {
             Picasso.get().load(Constants().SITE_NAME_FILES + "/publicavatars/${avatarUrl}").into(avatar)
@@ -135,11 +140,35 @@ class PublicActivity : AppCompatActivity() {
             intent.putExtra("id", id)
             startActivity(intent)
         }
+        subscribeButton?.setOnClickListener {
+            subscribe(id!!)
+        }
 
 
         if (id != null) {
             getDataInBackground()
         }
+    }
+
+    fun subscribe(id: String) {
+        Thread {
+            try {
+                val result = Utils.request(this, "public/subscribe-list-mobile/${id}/${if(isSubscriber) 1 else 0}", "GET", true, null)
+                runOnUiThread {
+                    if(JSONObject(result).getBoolean("isSubscriber")) {
+                        Toast.makeText(this, R.string.subscribed, Toast.LENGTH_SHORT).show()
+                        subscribeButton?.text = "Отписаться"
+                        isSubscriber = true
+                    } else {
+                        Toast.makeText(this, R.string.unsubscribed, Toast.LENGTH_SHORT).show()
+                        subscribeButton?.text = "Подписаться"
+                        isSubscriber = false
+                    }
+                }
+            } catch(e: InterruptedException) {
+                Log.e("TAG", "ERROR")
+            }
+        }.start()
     }
 
     fun getDataInBackground() {

@@ -19,7 +19,7 @@ import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class SelectedImagesAdapter(private val items: ArrayList<SelectedImage>, private val photos: ArrayList<File>) : RecyclerView.Adapter<SelectedImagesAdapter.ViewHolder>() {
+class SelectedImagesAdapter(private val items: ArrayList<SelectedImage>, private val photos: ArrayList<LoadingFile>, private val deleted: ArrayList<Boolean>) : RecyclerView.Adapter<SelectedImagesAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.selected_image_item, parent, false)
@@ -45,6 +45,11 @@ class SelectedImagesAdapter(private val items: ArrayList<SelectedImage>, private
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.image?.setImageURI(item.uri)
+
+        if(!item.loading) {
+            holder.removeImage?.visibility = View.VISIBLE
+        }
+
         holder.removeImage?.setOnClickListener {
             items.removeAt(position)
             photos.removeAt(position)

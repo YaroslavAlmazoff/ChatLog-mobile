@@ -15,7 +15,6 @@ import java.net.URL
 class AddMembersActivity : AppCompatActivity() {
     var userData: JSONObject? = null
     var usersList: RecyclerView? = null
-    var addButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
     var usersArray: ArrayList<User> = ArrayList()
     var members: ArrayList<String> = ArrayList()
     var pb: ProgressBar? = null
@@ -26,7 +25,6 @@ class AddMembersActivity : AppCompatActivity() {
         var util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
-        addButton = findViewById(R.id.add_button)
         usersList = findViewById(R.id.friends_list)
         pb = findViewById(R.id.pb)
 

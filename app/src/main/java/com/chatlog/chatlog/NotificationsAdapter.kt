@@ -131,7 +131,7 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
                     val result = Utils.request(context, "reply/$from", "GET", true, null)
                     Log.e("TAG", result)
                 }
-                deleteNotification(title, context)
+                deleteNotification(id, context)
                 if(value) {
                     reply()
                 }
@@ -140,8 +140,8 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
             }
         }.start()
     }
-    private fun deleteNotification(title: String, context: Context) {
-        val result = Utils.request(context, "deletenotification/$title", "DELETE", true, null)
+    private fun deleteNotification(id: String, context: Context) {
+        val result = Utils.request(context, "deletenotificationbyid/$id", "DELETE", true, null)
         Log.e("TAG", result)
     }
     private fun getFileInBackground(value: Boolean, id: String, context: Context) {
@@ -151,6 +151,7 @@ class NotificationsAdapter(private val items: ArrayList<Notification>, private v
                     val response = Utils.request(context, "getsentfile/$id", "GET", true, null)
                     Log.e("TAG", response)
                 }
+                deleteNotification(id, context)
             } catch (e: InterruptedException) {
                 Log.e("TAG", e?.message!!)
             }

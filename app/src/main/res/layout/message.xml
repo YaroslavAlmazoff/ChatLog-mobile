@@ -83,6 +83,12 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/message_img"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/block" />
     <TextView
         android:id="@+id/message_text"
         android:layout_width="wrap_content"
@@ -91,12 +97,6 @@
         android:text="message"
         android:textSize="10pt"
         android:layout_marginTop="10dp" />
-    <ImageView
-        android:id="@+id/message_img"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/block" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/video"
         android:visibility="gone"

@@ -98,11 +98,10 @@
                 app:glowColor="@color/green_neon" />
         </LinearLayout>
         <LinearLayout
-            android:id="@+id/update_profile_images"
+            android:id="@+id/create_public_images"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="horizontal"
-            android:layout_marginTop="10dp"
             app:layout_constraintTop_toBottomOf="@id/create_public_uploads">
             <ImageView
                 android:id="@+id/create_public_avatar"
@@ -119,7 +118,7 @@
         <com.sanojpunchihewa.glowbutton.GlowButton
             android:id="@+id/create_button"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/blue_button"
             android:padding="20dp"
@@ -129,7 +128,7 @@
             android:textSize="15dp"
             app:buttonColor="@color/neon_blue"
             app:glowColor="@color/neon_blue"
-            app:layout_constraintTop_toBottomOf="@id/create_public_uploads" />
+            app:layout_constraintTop_toBottomOf="@id/create_public_images" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -138,6 +137,14 @@
         android:background="@color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
         <TextView
             android:id="@+id/pick_images_cancel"
             android:layout_width="match_parent"
@@ -149,19 +156,20 @@
             android:layout_marginBottom="15dp"
             android:textAlignment="center"
             app:layout_constraintTop_toTopOf="parent" />
-        <GridView
-            android:id="@+id/greed"
-            android:numColumns="3"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="10dp"
-            app:layout_constraintTop_toTopOf="@id/pick_images_cancel"
+        <ProgressBar
+            android:id="@+id/pb2"
+            android:visibility="gone"
+            android:layout_marginTop="50dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:max="100" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.fragment.app.FragmentContainerView
@@ -171,4 +179,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         class="com.chatlog.chatlog.Navigation"/>
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/notifications"
+        class="com.chatlog.chatlog.Notifications"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

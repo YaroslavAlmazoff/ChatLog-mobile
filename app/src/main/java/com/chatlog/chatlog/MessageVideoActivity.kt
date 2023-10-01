@@ -19,7 +19,11 @@ class MessageVideoActivity : AppCompatActivity() {
         val button = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.go_back_button)
 
         button.setOnClickListener {
-            startActivity(Intent(this, MessengerActivity::class.java))
+            val myIntent = Intent(this,
+                if(intent.getStringExtra("type") == "chat") ChatMessengerActivity::class.java
+                else MessengerActivity::class.java)
+            myIntent.putExtra("id", intent.getStringExtra("id"))
+            startActivity(myIntent)
         }
         val isUri = intent.getBooleanExtra("isUri", false)
         Log.e("TAG", isUri.toString())

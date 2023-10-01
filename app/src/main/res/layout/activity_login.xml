@@ -74,6 +74,33 @@
             app:buttonColor="@color/neon_blue"
             app:glowColor="@color/neon_blue"
             app:layout_constraintTop_toBottomOf="@id/passwordField" />
+        <TextView
+            android:id="@+id/forgot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/forgot_your_password"
+            android:textAlignment="center"
+            android:textColor="@color/neon_blue"
+            android:textSize="9pt"
+            android:shadowColor="@color/neon_blue"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="5"
+            app:layout_constraintTop_toBottomOf="@id/support_button"
+            app:layout_constraintBottom_toBottomOf="parent" />
+        <ProgressBar
+            android:id="@+id/pb"
+            android:visibility="gone"
+            android:layout_marginTop="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/forgot"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:max="100" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -82,7 +82,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.download_button).setOnClickListener {
-            Utils.downloadFile(title, Constants().SITE_NAME_FILES + "/gamedownloads/$downloadUrl", this, "") {
+            Utils.downloadFile("$title.apk", Constants().SITE_NAME_FILES + "/gamedownloads/$downloadUrl", this, "") {
                 Toast.makeText(this, R.string.downloaded, Toast.LENGTH_LONG).show()
                 it.visibility = View.GONE
                 findViewById<TextView>(R.id.game_downloaded).visibility = View.VISIBLE

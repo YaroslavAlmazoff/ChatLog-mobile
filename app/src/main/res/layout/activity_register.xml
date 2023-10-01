@@ -150,6 +150,19 @@
             android:textColorHint="@color/orange_neon"
             android:backgroundTint="@color/neon_blue"
             android:padding="20dp" />
+        <ProgressBar
+            android:id="@+id/pb"
+            android:visibility="gone"
+            android:layout_marginTop="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/password2Field"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:max="100" />
         <com.sanojpunchihewa.glowbutton.GlowButton
             android:id="@+id/support_button"
             android:layout_width="match_parent"
@@ -165,7 +178,7 @@
             app:buttonColor="@color/neon_blue"
             app:glowColor="@color/neon_blue"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/password2Field"
+            app:layout_constraintTop_toBottomOf="@id/pb"
             tools:ignore="OnClick" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

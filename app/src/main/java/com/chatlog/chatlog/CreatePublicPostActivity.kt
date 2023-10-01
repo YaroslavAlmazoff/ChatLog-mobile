@@ -11,14 +11,18 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,21 +34,20 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.lang.Boolean
-import java.net.URL
 
 
 class CreatePublicPostActivity : AppCompatActivity() {
     var userData: JSONObject? = null
-    private var photos: ArrayList<File>? = null
+    private var photos: ArrayList<LoadingFile>? = null
 
     var imagesList: RecyclerView? = null
+    var adapter: SelectedImagesAdapter? = null
+    var layoutManager: LinearLayoutManager? = null
     var selectedImagesArray: ArrayList<SelectedImage>? = null
 
-    var currentPhotoNumber = 1
+    var currentPhotoNumber = 0
 
     var postTitle: TextView? = null
     var postText: TextView? = null
@@ -56,6 +59,11 @@ class CreatePublicPostActivity : AppCompatActivity() {
     var pickImages: View? = null
     var imageFile: File? = null
 
+    var pb: ProgressBar? = null
+    var pb2: ProgressBar? = null
+
+    var sendButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
+
     private val GALERY_ADD_PHOTO = 1
     @RequiresApi(33)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +71,6 @@ class CreatePublicPostActivity : AppCompatActivity() {
         setContentView(R.layout.activity_create_public_post)
 
         pickImagesCancel = findViewById(R.id.pick_images_cancel)
-        greed = findViewById(R.id.greed)
         pickImages = findViewById(R.id.pick_images)
         pickImagesCancel?.setOnClickListener {
             greed?.adapter = null
@@ -75,20 +82,25 @@ class CreatePublicPostActivity : AppCompatActivity() {
 
         imagesList = findViewById(R.id.selected_images_list)
         selectedImagesArray = ArrayList()
-        imagesList?.adapter = SelectedImagesAdapter(selectedImagesArray!!, photos!!)
-        imagesList?.layoutManager = LinearLayoutManager(this)
+        adapter = SelectedImagesAdapter(selectedImagesArray!!, photos!!, ArrayList())
+        layoutManager = LinearLayoutManager(this)
+        imagesList?.adapter = adapter
+        imagesList?.layoutManager = layoutManager
 
         postTitle = findViewById(R.id.post_title)
         postText = findViewById(R.id.post_text)
 
+        pb = findViewById(R.id.pb)
+        pb2 = findViewById(R.id.pb2)
 
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
         val goBack = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.go_back)
-        val sendButton = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.send_button)
+        sendButton = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.send_button)
 
-        sendButton.setOnClickListener {
+        sendButton?.setOnClickListener {
+            pb?.visibility = View.VISIBLE
             sendInBackground()
         }
 
@@ -96,7 +108,9 @@ class CreatePublicPostActivity : AppCompatActivity() {
             onBackPressed()
         }
         findViewById<Button>(R.id.upload_image_button).setOnClickListener {
-            uploadImage()
+            pb?.visibility = View.VISIBLE
+            sendButton?.visibility = View.GONE
+            selectImageLauncher.launch("image/*")
         }
     }
     private fun sendInBackground() {
@@ -113,39 +127,32 @@ class CreatePublicPostActivity : AppCompatActivity() {
         updateProfile(token!!)
     }
 
-    private fun uploadImage() {
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-        } else {
-            listFiles()
-        }
-    }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("TAG", requestCode.toString())
-        when (requestCode) {
-            101 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    listFiles()
-                } else {
-                    uploadImage()
+    private val selectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // Обработка выбранного изображения
+        if (uri != null) {
+            Thread {
+                val inputStream = contentResolver.openInputStream(uri)
+                val file = File(cacheDir, "file$currentPhotoNumber") // Создаем временный файл
+                file.createNewFile()
+                val fos = FileOutputStream(file)
+
+                inputStream?.copyTo(fos)
+
+                imageFile = file
+
+                runOnUiThread {
+                    pb?.visibility = View.GONE
+                    sendButton?.visibility = View.VISIBLE
+
+                    photos?.add(LoadingFile(file, false))
+                    selectedImagesArray?.add(SelectedImage(uri, false))
+                    adapter?.notifyDataSetChanged()
+                    currentPhotoNumber++
                 }
-                return
-            }
+            }.start()
         }
     }
-
-    private fun listFiles() {
-        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        pickImages?.visibility = View.VISIBLE
-        greed?.adapter = ImagesAdapter(applicationContext)
-    }
-
-
-
-
 
 
     private fun updateProfile(token: String) {
@@ -165,7 +172,9 @@ class CreatePublicPostActivity : AppCompatActivity() {
         val parts: ArrayList<MultipartBody.Part> = ArrayList()
 
         for(i in 0 until photos?.size!!) {
-            parts.add(prepareFilePart(i)!!)
+            if(!photos?.get(i)?.deleted!!) {
+                parts.add(prepareFilePart(i)!!)
+            }
         }
 
         val date = RequestBody.create("text/plain".toMediaTypeOrNull(), Utils().getCurrentDate())
@@ -199,8 +208,8 @@ class CreatePublicPostActivity : AppCompatActivity() {
     }
     private fun prepareFilePart(i: Int): MultipartBody.Part? {
         val file = photos?.get(i)
-        val requestBody: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file!!)
-        return MultipartBody.Part.createFormData("file$i", photos?.get(i)?.name, requestBody)
+        val requestBody: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file?.file!!)
+        return MultipartBody.Part.createFormData("file$i", photos?.get(i)?.file?.name, requestBody)
     }
     private fun runUserActivity() {
         val intent = Intent(this, UserActivity::class.java)
@@ -208,55 +217,4 @@ class CreatePublicPostActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-
-    inner class ImagesAdapter : BaseAdapter {
-        var context: Context
-        constructor(context: Context) {
-            this.context = context
-        }
-        override fun getCount(): Int {
-            return rs.count
-        }
-
-        override fun getItem(position: Int): Any {
-            return position
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            var iv = ImageView(context)
-            rs.moveToPosition(position)
-            var path = rs.getString(0)
-            var bitmap = BitmapFactory.decodeFile(path)
-            iv.setImageBitmap(bitmap)
-            iv.layoutParams = AbsListView.LayoutParams(300, 300)
-            iv.setOnClickListener {
-                pickImagesCancel?.text = "Загрузка изображения..."
-                Log.e("TAG", "Вы нажали на картинку $path")
-                val f = File(filesDir, "photo$currentPhotoNumber");
-                f.createNewFile();
-                val bitmap = bitmap;
-                val bos = ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
-                val bitmapData = bos.toByteArray();
-                val fos = FileOutputStream(f);
-                fos.write(bitmapData);
-                fos.flush();
-                fos.close();
-                imageFile = f
-                pickImages?.visibility = View.GONE
-                uploadScreen?.visibility = View.GONE
-                selectedImagesArray?.add(SelectedImage(Uri.fromFile(f)))
-                photos?.add(File(filesDir, "photo$currentPhotoNumber"))
-                imagesList?.adapter?.notifyDataSetChanged()
-                currentPhotoNumber++
-                pickImagesCancel?.text = "Отмена"
-                greed?.adapter = null
-            }
-            return iv
-        }
-    }
 }

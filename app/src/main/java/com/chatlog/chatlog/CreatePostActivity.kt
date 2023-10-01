@@ -11,14 +11,18 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,42 +44,32 @@ import java.io.OutputStream
 
 class CreatePostActivity : AppCompatActivity() {
     var userData: JSONObject? = null
-    private var photos: ArrayList<File>? = null
+    private var photos: ArrayList<LoadingFile>? = null
+    var adapter: SelectedImagesAdapter? = null
 
     var imagesList: RecyclerView? = null
     var selectedImagesArray: ArrayList<SelectedImage>? = null
 
-    var currentPhotoNumber = 1
+    var currentPhotoNumber = 0
 
     var postText: TextView? = null
-
-    var uploadScreen: View? = null
-    var pickImagesCancel: TextView? = null
-    lateinit var rs: Cursor
-    var greed: GridView? = null
-    var pickImages: View? = null
     var imageFile: File? = null
 
-    private val GALERY_ADD_PHOTO = 1
+    var pb: ProgressBar? = null
+    var sendButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
+
     @RequiresApi(33)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_post)
-
-        pickImagesCancel = findViewById(R.id.pick_images_cancel)
-        greed = findViewById(R.id.greed)
-        pickImages = findViewById(R.id.pick_images)
-        pickImagesCancel?.setOnClickListener {
-            greed?.adapter = null
-            pickImages?.visibility = View.GONE
-            uploadScreen?.visibility = View.GONE
-        }
+        pb = findViewById(R.id.pb)
 
         photos = ArrayList()
 
         imagesList = findViewById(R.id.selected_images_list)
         selectedImagesArray = ArrayList()
-        imagesList?.adapter = SelectedImagesAdapter(selectedImagesArray!!, photos!!)
+        adapter = SelectedImagesAdapter(selectedImagesArray!!, photos!!, ArrayList())
+        imagesList?.adapter = adapter
         imagesList?.layoutManager = LinearLayoutManager(this)
 
         postText = findViewById(R.id.post_text)
@@ -85,9 +79,10 @@ class CreatePostActivity : AppCompatActivity() {
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
         val goBack = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.go_back)
-        val sendButton = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.send_button)
+        sendButton = findViewById(R.id.send_button)
 
-        sendButton.setOnClickListener {
+        sendButton?.setOnClickListener {
+            pb?.visibility = View.VISIBLE
             sendInBackground()
         }
 
@@ -96,13 +91,11 @@ class CreatePostActivity : AppCompatActivity() {
             intent.putExtra("id", userData?.getJSONObject("user")?.getString("_id"))
             startActivity(intent)
         }
-//        findViewById<Button>(R.id.upload_image_button).setOnClickListener {
-//            val intent = Intent(Intent.ACTION_PICK)
-//            intent.type = "image/*"
-//            startActivityForResult(intent, GALERY_ADD_PHOTO)
-//        }
+
         findViewById<Button>(R.id.upload_image_button).setOnClickListener {
-            uploadImage()
+            pb?.visibility = View.VISIBLE
+            sendButton?.visibility = View.GONE
+            selectImageLauncher.launch("image/*")
         }
     }
 
@@ -117,39 +110,36 @@ class CreatePostActivity : AppCompatActivity() {
     }
     private fun sendData() {
         val token = Utils.updateToken(this)
-        updateProfile(token!!)
+        updateProfile(token)
         runUserActivity()
     }
 
 
-private fun uploadImage() {
-    if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-    } else {
-        listFiles()
-    }
-}
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("TAG", requestCode.toString())
-        when (requestCode) {
-            101 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    listFiles()
-                } else {
-                    uploadImage()
+    private val selectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // Обработка выбранного изображения
+        if (uri != null) {
+            Thread {
+                val inputStream = contentResolver.openInputStream(uri)
+                val file = File(cacheDir, "file$currentPhotoNumber") // Создаем временный файл
+                file.createNewFile()
+                val fos = FileOutputStream(file)
+
+                inputStream?.copyTo(fos)
+
+                imageFile = file
+
+                runOnUiThread {
+                    pb?.visibility = View.GONE
+                    sendButton?.visibility = View.VISIBLE
+
+                    photos?.add(LoadingFile(file, false))
+                    selectedImagesArray?.add(SelectedImage(uri, false))
+                    adapter?.notifyDataSetChanged()
+                    currentPhotoNumber++
                 }
-                return
-            }
+            }.start()
         }
-    }
-
-    private fun listFiles() {
-        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        pickImages?.visibility = View.VISIBLE
-        greed?.adapter = ImagesAdapter(applicationContext)
     }
 
 
@@ -173,7 +163,9 @@ private fun uploadImage() {
         val parts: ArrayList<MultipartBody.Part> = ArrayList()
 
         for(i in 0 until photos?.size!!) {
-            parts.add(prepareFilePart(i)!!)
+            if(!photos?.get(i)?.deleted!!) {
+                parts.add(prepareFilePart(i)!!)
+            }
         }
 
         val date = RequestBody.create("text/plain".toMediaTypeOrNull(), Utils().getCurrentDate())
@@ -181,12 +173,13 @@ private fun uploadImage() {
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                chatLogApi.sendPost(
+                val response = chatLogApi.sendPost(
                     title,
                     date,
                     parts,
                     "Bearer $token"
                 )
+                Log.e("TAG", "response -> $response")
             }
         } catch(e: IllegalStateException) {
             Log.e("TAG", "Ошибка но ничего страшного")
@@ -194,64 +187,12 @@ private fun uploadImage() {
     }
     private fun prepareFilePart(i: Int): MultipartBody.Part? {
         val file = photos?.get(i)
-        val requestBody: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file!!)
-        return MultipartBody.Part.createFormData("file$i", photos?.get(i)?.name, requestBody)
+        val requestBody: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file?.file!!)
+        return MultipartBody.Part.createFormData("file$i", photos?.get(i)?.file?.name, requestBody)
     }
     private fun runUserActivity() {
         val intent = Intent(this, UserActivity::class.java)
         intent.putExtra("id", userData?.getJSONObject("user")?.getString("_id"))
         startActivity(intent)
-    }
-
-
-    inner class ImagesAdapter : BaseAdapter {
-        var context: Context
-        constructor(context: Context) {
-            this.context = context
-        }
-        override fun getCount(): Int {
-            return rs.count
-        }
-
-        override fun getItem(position: Int): Any {
-            return position
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            var iv = ImageView(context)
-            rs.moveToPosition(position)
-            var path = rs.getString(0)
-            var bitmap = BitmapFactory.decodeFile(path)
-            iv.setImageBitmap(bitmap)
-            iv.layoutParams = AbsListView.LayoutParams(300, 300)
-            iv.setOnClickListener {
-                pickImagesCancel?.text = "Загрузка изображения..."
-                Log.e("TAG", "Вы нажали на картинку $path")
-                val f = File(filesDir, "photo$currentPhotoNumber");
-                f.createNewFile();
-                val bitmap = bitmap;
-                val bos = ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
-                val bitmapData = bos.toByteArray();
-                val fos = FileOutputStream(f);
-                fos.write(bitmapData);
-                fos.flush();
-                fos.close();
-                imageFile = f
-                pickImages?.visibility = View.GONE
-                uploadScreen?.visibility = View.GONE
-                selectedImagesArray?.add(SelectedImage(Uri.fromFile(f)))
-                photos?.add(File(filesDir, "photo$currentPhotoNumber"))
-                imagesList?.adapter?.notifyDataSetChanged()
-                currentPhotoNumber++
-                pickImagesCancel?.text = "Отмена"
-                greed?.adapter = null
-            }
-            return iv
-        }
     }
 }

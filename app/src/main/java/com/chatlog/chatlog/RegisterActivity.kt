@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import org.json.JSONObject
 import java.io.File
@@ -27,10 +28,13 @@ class RegisterActivity : AppCompatActivity() {
     var password1Field: EditText? = null
     var password2Field: EditText? = null
 
+    var pb: ProgressBar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        pb = findViewById(R.id.pb)
     }
     private fun String.isEmailValid(): Boolean {
         return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
@@ -46,6 +50,7 @@ class RegisterActivity : AppCompatActivity() {
         return true
     }
     fun register(view: View) {
+        pb?.visibility = View.VISIBLE
         nameField = findViewById(R.id.nameField)
         surnameField = findViewById(R.id.surnameField)
         dateField = findViewById(R.id.dateField)
@@ -100,6 +105,7 @@ class RegisterActivity : AppCompatActivity() {
                 "\"password\": \"${password1Field?.text.toString()}\"}"
         val result = Utils.request(this, "register", "POST", false, json)
         Utils().saveUserData(result, filesDir)
+        Utils.init(this, JSONObject(result).getString("userId"))
         runHomeActivity()
     }
 

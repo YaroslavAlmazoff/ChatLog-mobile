@@ -110,7 +110,7 @@ class CommentsActivity : AppCompatActivity() {
         }
     }
     private fun sendComment(id: String, comments: ArrayList<Comment>) {
-        val json = "{\"text\": \"${commentField?.text.toString()}\"}"
+        val json = "{\"text\": \"${commentField?.text.toString()}\", \"date\": \"${Utils().getCurrentDate()}\"}"
         val result = Utils.request(this, "userpost/comment/$id", "POST", true, json)
         Log.e("TAG", result)
         val responseComment = JSONObject(result).getJSONObject("comment")
@@ -121,5 +121,6 @@ class CommentsActivity : AppCompatActivity() {
             responseComment.getString("avatarUrl")
         ))
         commentField?.setText("")
+        commentsList?.adapter?.notifyDataSetChanged()
     }
 }

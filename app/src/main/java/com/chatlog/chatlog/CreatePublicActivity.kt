@@ -7,11 +7,13 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
@@ -20,9 +22,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.GridView
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,30 +64,23 @@ class CreatePublicActivity : AppCompatActivity() {
     var avatarUri: String? = null
     var bannerUri: String? = null
 
-    var uploadScreen: View? = null
-    var pickImagesCancel: TextView? = null
-    lateinit var rs: Cursor
-    var greed: GridView? = null
-    var pickImages: View? = null
-
     var currentMode: String = ""
+
+    var pb: ProgressBar? = null
+    var pb2: ProgressBar? = null
+
+    var createButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_public)
 
-        pickImagesCancel = findViewById(R.id.pick_images_cancel)
-        greed = findViewById(R.id.greed)
-        pickImages = findViewById(R.id.pick_images)
-        pickImagesCancel?.setOnClickListener {
-            greed?.adapter = null
-            pickImages?.visibility = View.GONE
-            uploadScreen?.visibility = View.GONE
-        }
-
         nameField = findViewById(R.id.name_field)
         descriptionField = findViewById(R.id.description_field)
+
+        pb = findViewById(R.id.pb)
+        pb2 = findViewById(R.id.pb2)
 
 //        val goBack = findViewById<com.sanojpunchihewa.glowbutton.GlowButton>(R.id.go_back)
 //
@@ -92,57 +92,63 @@ class CreatePublicActivity : AppCompatActivity() {
 
         val addAvatar = findViewById<Button>(R.id.create_public_add_avatar)
         val addBanner = findViewById<Button>(R.id.create_public_add_banner)
-        val createButton = findViewById<Button>(R.id.create_button)
+        createButton = findViewById(R.id.create_button)
 
         avatar = findViewById(R.id.create_public_avatar)
         banner = findViewById(R.id.create_public_banner)
 
-        createButton.setOnClickListener {
+        createButton?.setOnClickListener {
+            pb?.visibility = View.VISIBLE
             update()
         }
 
-        val imagesLayout = findViewById<View>(R.id.update_profile_images)
-
         addAvatar.setOnClickListener {
             currentMode = "avatar"
-            uploadImage("avatar")
+            pb?.visibility = View.VISIBLE
+            createButton?.visibility = View.GONE
+            selectImageLauncher.launch("image/*")
         }
         addBanner.setOnClickListener {
             currentMode = "banner"
-            uploadImage("banner")
+            pb?.visibility = View.VISIBLE
+            createButton?.visibility = View.GONE
+            selectImageLauncher.launch("image/*")
         }
 
         val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
     }
 
-    private fun uploadImage(mode: String) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 101)
-        } else {
-            listFiles(mode)
-        }
-    }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("TAG", requestCode.toString())
-        when (requestCode) {
-            101 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    listFiles(currentMode)
-                } else {
-                    Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_LONG).show()
-                }
+    private val selectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // Обработка выбранного изображения
+        if (uri != null) {
+            if(currentMode == "avatar") {
+                avatar?.setImageURI(uri)
+            } else {
+                banner?.setImageURI(uri)
             }
-        }
-    }
 
-    private fun listFiles(mode: String) {
-        var cols = listOf(MediaStore.Images.Thumbnails.DATA).toTypedArray()
-        rs = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cols, null, null, null)!!
-        pickImages?.visibility = View.VISIBLE
-        greed?.adapter = ImagesAdapter(applicationContext, mode)
+            Thread {
+                val inputStream = contentResolver.openInputStream(uri)
+                val file = File(cacheDir, "file") // Создаем временный файл
+                file.createNewFile()
+                val fos = FileOutputStream(file)
+
+                inputStream?.copyTo(fos)
+
+                if(currentMode == "avatar") {
+                    avatarFile = file
+                } else {
+                    bannerFile = file
+                }
+
+                runOnUiThread {
+                    pb?.visibility = View.GONE
+                    createButton?.visibility = View.VISIBLE
+                }
+            }.start()
+        }
     }
 
     private fun update() {
@@ -177,17 +183,25 @@ class CreatePublicActivity : AppCompatActivity() {
                 var body1: MultipartBody.Part? = null
                 var body2: MultipartBody.Part? = null
 
-                if(avatarFile != null) {
-                    requestFile1 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), avatarFile!!)
-                    body1 = MultipartBody.Part.createFormData("avatar", avatarFile?.name, requestFile1)
+                if (avatarFile != null) {
+                    requestFile1 =
+                        RequestBody.create("multipart/form-data".toMediaTypeOrNull(), avatarFile!!)
+                    body1 =
+                        MultipartBody.Part.createFormData("avatar", avatarFile?.name, requestFile1)
                 }
-                if(bannerFile != null) {
-                    requestFile2 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), bannerFile!!)
-                    body2 = MultipartBody.Part.createFormData("banner", bannerFile?.name, requestFile2)
+                if (bannerFile != null) {
+                    requestFile2 =
+                        RequestBody.create("multipart/form-data".toMediaTypeOrNull(), bannerFile!!)
+                    body2 =
+                        MultipartBody.Part.createFormData("banner", bannerFile?.name, requestFile2)
                 }
 
-                var name = RequestBody.create("text/plain".toMediaTypeOrNull(), nameField?.text.toString())
-                var description = RequestBody.create("text/plain".toMediaTypeOrNull(), descriptionField?.text.toString())
+                var name =
+                    RequestBody.create("text/plain".toMediaTypeOrNull(), nameField?.text.toString())
+                var description = RequestBody.create(
+                    "text/plain".toMediaTypeOrNull(),
+                    descriptionField?.text.toString()
+                )
 
                 try {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -210,8 +224,9 @@ class CreatePublicActivity : AppCompatActivity() {
                         intent.putExtra("subscribers", subscribers)
                         intent.putExtra("posts", posts)
                         intent.putExtra("isSubscriber", false)
+                        startActivity(intent)
                     }
-                } catch(e: IllegalStateException) {
+                } catch (e: IllegalStateException) {
                     Log.e("TAG", "Ошибка но ничего страшного")
                 }
             } catch (e: InterruptedException) {
@@ -220,67 +235,4 @@ class CreatePublicActivity : AppCompatActivity() {
         }.start()
     }
 
-    inner class ImagesAdapter : BaseAdapter {
-        var context: Context
-        var mode: String = "image"
-        constructor(context: Context, mode: String) {
-            this.context = context
-            this.mode = mode
-        }
-        override fun getCount(): Int {
-            return rs.count
-        }
-
-        override fun getItem(position: Int): Any {
-            return position
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            var iv = ImageView(context)
-            rs.moveToPosition(position)
-            var path = rs.getString(0)
-            var bitmap = BitmapFactory.decodeFile(path)
-            iv.setImageBitmap(bitmap)
-            iv.layoutParams = AbsListView.LayoutParams(300, 300)
-
-            iv.setOnClickListener {
-                pickImagesCancel?.text = "Загрузка изображения..."
-                Log.e("TAG", "Вы нажали на картинку $path")
-                val f = if(mode == "avatar") File(filesDir, "file")
-                else if(mode == "banner") File(filesDir, "file2")
-                else File(filesDir, "file")
-
-
-                f.createNewFile();
-
-                val bitmap = bitmap;
-                val bos = ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
-                val bitmapData = bos.toByteArray();
-
-                val fos = FileOutputStream(f);
-                fos.write(bitmapData);
-                fos.flush();
-                fos.close();
-                pickImages?.visibility = View.GONE
-                uploadScreen?.visibility = View.GONE
-                if(mode == "avatar") {
-                    avatarFile = f
-                    avatar?.setImageBitmap(bitmap)
-                    avatar?.visibility = View.VISIBLE
-                } else if(mode == "banner") {
-                    bannerFile = f
-                    banner?.setImageBitmap(bitmap)
-                    banner?.visibility = View.VISIBLE
-                }
-                pickImagesCancel?.text = "Отмена"
-                currentMode = ""
-            }
-            return iv
-        }
-    }
 }

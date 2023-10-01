@@ -1,9 +1,13 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id("com.google.gms.google-services")
 }
 
 android {
+    dataBinding {
+        enabled = true
+    }
     compileSdk 33
 
     defaultConfig {
@@ -33,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation 'com.github.dhaval2404:imagepicker:1.7.5'
+    implementation 'com.github.florent37:inline-activity-result-kotlin:1.0.4'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.7.2'
@@ -52,4 +58,11 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     implementation 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.14'
     implementation 'com.google.android.exoplayer:exoplayer-core:2.15.1'
+    implementation(platform("com.google.firebase:firebase-bom:32.2.2"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation 'com.google.firebase:firebase-messaging-ktx:23.2.1'
+    implementation 'com.google.firebase:firebase-core:17.4.4'
+    implementation 'com.google.firebase:firebase-messaging:20.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0'
 }
