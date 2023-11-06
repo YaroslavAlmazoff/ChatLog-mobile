@@ -17,7 +17,10 @@ import java.net.URL
 class PeopleActivity : AppCompatActivity() {
     var userData: JSONObject? = null
     var usersList: RecyclerView? = null
+    var savedUsersList: RecyclerView? = null
+    var savedUsersArray: ArrayList<User> = ArrayList()
     var pb: ProgressBar? = null
+    var dbHelper = DatabaseHelper(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people)
@@ -25,7 +28,35 @@ class PeopleActivity : AppCompatActivity() {
         var util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
+        savedUsersList = findViewById(R.id.saved_users_list)
+
+        savedUsersList?.layoutManager = LinearLayoutManager(this)
+        savedUsersList?.adapter = ShortPeopleAdapter(savedUsersArray, this)
+
+        getCacheInBackground()
+
         initialize()
+    }
+
+    private fun getCacheInBackground() {
+        val usersArr = dbHelper.getUsers()
+        usersArr.reverse()
+        for(i in 0 until usersArr.size) {
+            val item = usersArr[i]
+            savedUsersArray.add(
+                User(
+                    item.name,
+                    item.surname,
+                    item.birthDate,
+                    item.country,
+                    item.city,
+                    item.avatarUrl,
+                )
+            )
+        }
+
+        savedUsersList?.adapter?.notifyDataSetChanged()
+        pb?.visibility = View.GONE
     }
     override fun onRestart() {
         super.onRestart()
@@ -45,8 +76,8 @@ class PeopleActivity : AppCompatActivity() {
 
         getUsersInBackground(usersArray)
 
-        usersList?.adapter = PeopleAdapter(usersArray, userData!!, this)
         usersList?.layoutManager = LinearLayoutManager(this)
+        usersList?.adapter = PeopleAdapter(usersArray, userData!!, this)
     }
     private fun getUsersInBackground(users: ArrayList<User>) {
         Thread {
@@ -75,6 +106,11 @@ class PeopleActivity : AppCompatActivity() {
                 usersArray.getJSONObject(i).getString("avatarUrl"),
                 usersArray.getJSONObject(i).getString("_id")
             ))
+        }
+        runOnUiThread {
+            usersList?.adapter?.notifyDataSetChanged()
+            savedUsersList?.visibility = View.GONE
+            usersList?.visibility = View.VISIBLE
         }
     }
 }

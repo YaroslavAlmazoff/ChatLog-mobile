@@ -1,7 +1,10 @@
 package com.chatlog.chatlog
 
+//import com.google.firebase.FirebaseApp
 import android.app.DownloadManager
 import android.content.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -12,19 +15,18 @@ import android.os.StrictMode
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
-//import com.google.firebase.FirebaseApp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
+import java.net.HttpURLConnection
 import java.net.URL
-import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.math.floor
+
 
 class Utils {
     val userFileName = "user/user.txt"
@@ -66,6 +68,16 @@ class Utils {
     }
     fun clearUserData(filesDir: File) {
         writeToUserFile(File(filesDir, userFileName), "".toByteArray())
+        val directory: File = filesDir
+        if (directory.isDirectory) {
+            val fileList = directory.list()
+            for (fileName in fileList) {
+                val file = File(directory, fileName)
+                if (file.isFile) {
+                    file.delete()
+                }
+            }
+        }
     }
     fun getCurrentDate():String{
         val sdf = SimpleDateFormat("HH:mm:ss")
@@ -297,6 +309,47 @@ class Utils {
                 cursor.close()
             }
             return path
+        }
+
+        fun getBitmapFromFile(context: Context, name: String): Bitmap {
+            return BitmapFactory.decodeFile(context.filesDir.path + "/$name")
+        }
+
+        fun isNetworkAvailable(context: Context): Boolean {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork ?: return false
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+                return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+            } else {
+                val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+                return networkInfo.isConnectedOrConnecting
+            }
+        }
+        fun saveFileFromUrl(context: Context, url: String, name: String, code: () -> Unit) {
+            Thread {
+                    val connection = URL(url).openConnection() as HttpURLConnection
+                    connection.doInput = true
+                    connection.connect()
+                    val inputStream = connection.inputStream
+
+                    val outputStream = context.openFileOutput(name, Context.MODE_PRIVATE)
+
+                    val buffer = ByteArray(1024)
+                    var bytesRead = inputStream.read(buffer)
+                    while (bytesRead != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                        bytesRead = inputStream.read(buffer)
+                    }
+
+                outputStream.close()
+                inputStream.close()
+                Log.e("TAG", "file saved")
+                code()
+            }.start()
         }
     }
 }

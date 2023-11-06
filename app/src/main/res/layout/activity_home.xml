@@ -146,7 +146,7 @@
                     android:layout_marginRight="10dp"
                     android:max="100" />
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/home_news"
+                    android:id="@+id/saved_home_news"
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="100dp"
                     android:layout_width="match_parent"
@@ -154,6 +154,16 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/home_news_buttons" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/home_news"
+                    android:visibility="gone"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="100dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/saved_home_news" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/home_news_p"
                     android:visibility="gone"

@@ -64,9 +64,6 @@ class UpdateProfileActivity : AppCompatActivity() {
 
     var userData: JSONObject? = null
 
-    val GALERY_ADD_AVATAR = 1
-    val GALERY_ADD_BANNER = 2
-
     var updateButton: com.sanojpunchihewa.glowbutton.GlowButton? = null
 
 

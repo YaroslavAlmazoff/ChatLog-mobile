@@ -111,7 +111,6 @@ class CreatePostActivity : AppCompatActivity() {
     private fun sendData() {
         val token = Utils.updateToken(this)
         updateProfile(token)
-        runUserActivity()
     }
 
 
@@ -167,9 +166,11 @@ class CreatePostActivity : AppCompatActivity() {
                 parts.add(prepareFilePart(i)!!)
             }
         }
+        val dt = Utils().getCurrentDate()
+        val txt = postText?.text?.toString()!!
 
-        val date = RequestBody.create("text/plain".toMediaTypeOrNull(), Utils().getCurrentDate())
-        val title = RequestBody.create("text/plain".toMediaTypeOrNull(), postText?.text?.toString()!!)
+        val date = RequestBody.create("text/plain".toMediaTypeOrNull(), dt)
+        val title = RequestBody.create("text/plain".toMediaTypeOrNull(), txt)
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
@@ -180,6 +181,11 @@ class CreatePostActivity : AppCompatActivity() {
                     "Bearer $token"
                 )
                 Log.e("TAG", "response -> $response")
+                DatabaseHelper(applicationContext).addPost(txt, dt, response)
+                Utils.saveFileFromUrl(applicationContext, Constants().SITE_NAME_FILES + "/articles/" + response, response) {}
+                val intent = Intent(applicationContext, UserActivity::class.java)
+                intent.putExtra("id", userData?.getJSONObject("user")?.getString("_id"))
+                startActivity(intent)
             }
         } catch(e: IllegalStateException) {
             Log.e("TAG", "Ошибка но ничего страшного")

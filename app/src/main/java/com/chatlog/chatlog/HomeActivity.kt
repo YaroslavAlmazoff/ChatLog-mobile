@@ -4,6 +4,7 @@ import android.R.attr.data
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.provider.ContactsContract.Data
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
@@ -27,6 +29,14 @@ class HomeActivity : AppCompatActivity() {
 
     var newsList: RecyclerView? = null
     var publicNewsList: RecyclerView? = null
+
+    var savedNewsList: RecyclerView? = null
+    var savedNewsArray: ArrayList<NewsItem> = ArrayList()
+
+    var newsArr: ArrayList<NewsItem> = ArrayList()
+    var publicNewsArr: ArrayList<NewsItem> = ArrayList()
+
+    val dbHelper = DatabaseHelper(this)
 
     var user: JSONObject? = null
     var userData: JSONObject? = null
@@ -61,7 +71,7 @@ class HomeActivity : AppCompatActivity() {
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
 
-        user = JSONObject(util.readUserFile(File(filesDir, util.userFileName))).getJSONObject("user")
+        user = userData?.getJSONObject("user")
 
         val unicode = 0x1F3E0
         weatherCity?.text = util.getEmojiByUnicode(unicode) + user?.getString("city").toString()
@@ -84,10 +94,10 @@ class HomeActivity : AppCompatActivity() {
         }
         timer.start()
         newsList = findViewById(R.id.home_news)
-        var newsArr: ArrayList<NewsItem> = ArrayList()
+        savedNewsList = findViewById(R.id.saved_home_news)
 
         publicNewsList = findViewById(R.id.home_news_p)
-        var publicNewsArr: ArrayList<NewsItem> = ArrayList()
+
 
         val friendsNewsSwitch = findViewById<TextView>(R.id.home_friends_news)
         val publicsNewsSwitch = findViewById<TextView>(R.id.home_publics_news)
@@ -99,48 +109,56 @@ class HomeActivity : AppCompatActivity() {
             newsList?.visibility = View.GONE
             publicNewsList?.visibility = View.VISIBLE
         }
-
-
-        getNewsInBackground(newsArr, true)
-        getNewsInBackground(publicNewsArr, false)
-
-        newsList?.adapter = HomeNewsAdapter(newsArr, userData!!)
+        savedNewsList?.layoutManager = LinearLayoutManager(this)
+        savedNewsList?.adapter = SavedPostsAdapter(savedNewsArray, userData!!, false, this)
         newsList?.layoutManager = LinearLayoutManager(this)
-        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr, userData!!, this)
+        newsList?.adapter = HomeNewsAdapter(newsArr, userData!!, false, this)
         publicNewsList?.layoutManager = LinearLayoutManager(this)
+        publicNewsList?.adapter = PublicNewsAdapter(publicNewsArr, userData!!, this)
+
+
+        getCacheInBackground()
+
+        getNewsInBackground()
+        getNewsInBackground()
     }
-    private fun getNewsInBackground(news: ArrayList<NewsItem>, isFriends: Boolean) {
+
+    private fun getCacheInBackground() {
+        val newsArr = dbHelper.getNews(this)
+        newsArr.reverse()
+        for(i in 0 until newsArr.size) {
+            val item = newsArr[i]
+            savedNewsArray.add(
+                NewsItem(
+                    item.title,
+                    item.date,
+                    item.user,
+                    item.userAvatar,
+                    item.image,
+                    item.likes,
+                    item.comments, false, JSONArray(), "", "", ""
+                )
+            )
+        }
+
+        savedNewsList?.adapter?.notifyDataSetChanged()
+        pb?.visibility = View.GONE
+    }
+    private fun getNewsInBackground() {
         Thread {
             try {
-                if(isFriends) {
-                    getFriendsNews(news)
-                    runOnUiThread {
-                        newsList?.adapter?.notifyDataSetChanged()
-                        pb?.visibility = View.GONE
-                    }
-                } else {
-                    getPublicNews(news)
-                    runOnUiThread {
-                        publicNewsList?.adapter?.notifyDataSetChanged()
-                    }
-                }
+                getPublicNews()
+                getFriendsNews()
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
             }
         }.start()
     }
-    private fun getFriendsNews(news: ArrayList<NewsItem>) {
-
-        Log.e("TAG", "bones")
-        Log.e("TAG", user?.getString("_id").toString())
-        runOnUiThread {
-            publicNewsList?.visibility = View.GONE
-            newsList?.visibility = View.VISIBLE
-        }
+    private fun getFriendsNews() {
         val newsData = Utils.request(this, "ffn/${user?.getString("_id")}", "GET", false, null)
         val newsArray = JSONObject(newsData).getJSONArray("news")
         for(i in 0 until newsArray.length()) {
-            news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
+            newsArr.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
                 newsArray.getJSONObject(i).getString("date"),
                 newsArray.getJSONObject(i).getString("userName"),
                 newsArray.getJSONObject(i).getString("avatar"),
@@ -154,19 +172,18 @@ class HomeActivity : AppCompatActivity() {
                 ""
             ))
         }
-    }
-    private fun getPublicNews(news: ArrayList<NewsItem>) {
-        Log.e("TAG", "sesh")
-        Log.e("TAG", user?.getString("_id").toString())
+
         runOnUiThread {
-            newsList?.visibility = View.GONE
-            publicNewsList?.visibility = View.VISIBLE
+            newsList?.adapter?.notifyDataSetChanged()
+            savedNewsList?.visibility = View.GONE
+            newsList?.visibility = View.VISIBLE
         }
+    }
+    private fun getPublicNews() {
         val newsData = Utils.request(this, "fpn/${user?.getString("_id")}", "GET", false, null)
-        Log.e("TAG", newsData)
         val newsArray = JSONObject(newsData).getJSONArray("news")
         for(i in 0 until newsArray.length()) {
-            news.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
+            publicNewsArr.add(NewsItem(newsArray.getJSONObject(i).getString("title"),
                 newsArray.getJSONObject(i).getString("date"),
                 newsArray.getJSONObject(i).getString("publicName"),
                 newsArray.getJSONObject(i).getString("avatar"),
@@ -179,6 +196,9 @@ class HomeActivity : AppCompatActivity() {
                 newsArray.getJSONObject(i).getString("public"),
                 newsArray.getJSONObject(i).getString("admin")
                 ))
+        }
+        runOnUiThread {
+            publicNewsList?.adapter?.notifyDataSetChanged()
         }
     }
     private fun getInBackground() {

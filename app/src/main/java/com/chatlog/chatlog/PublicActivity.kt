@@ -51,7 +51,7 @@ class PublicActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_public)
 
-        val util = Utils()
+
 
         id = intent.getStringExtra("id")!!
         name = intent.getStringExtra("name")!!
@@ -60,7 +60,7 @@ class PublicActivity : AppCompatActivity() {
         bannerUrl = intent.getStringExtra("bannerUrl")!!
         admin = intent.getStringExtra("admin")!!
         isSubscriber = intent.getBooleanExtra("isSubscriber", false)!!
-
+        val util = Utils()
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
         isAdmin = admin == userData?.getJSONObject("user")?.getString("_id")
@@ -110,7 +110,7 @@ class PublicActivity : AppCompatActivity() {
         subscribersList = findViewById(R.id.subscribers_list)
         postsList = findViewById(R.id.public_posts)
 
-        subscribersList?.adapter = FriendsAdapter(subscribers)
+        subscribersList?.adapter = FriendsAdapter(subscribers, this, true)
         val lm = LinearLayoutManager(this)
         lm.orientation = LinearLayoutManager.HORIZONTAL
         subscribersList?.layoutManager = lm

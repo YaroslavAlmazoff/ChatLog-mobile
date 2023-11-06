@@ -26,6 +26,9 @@
         android:theme="@style/Theme.ChatLog"
         tools:targetApi="33">
         <activity
+            android:name=".LoadingActivity"
+            android:exported="false" />
+        <activity
             android:name=".ForgotPassword"
             android:exported="false" />
         <activity

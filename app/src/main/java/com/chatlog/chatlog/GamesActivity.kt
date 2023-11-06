@@ -3,6 +3,7 @@ package com.chatlog.chatlog
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.ContactsContract.Data
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
@@ -16,7 +17,10 @@ import java.net.URL
 class GamesActivity : AppCompatActivity() {
     var userData: JSONObject? = null
     var gamesList: RecyclerView? = null
+    var savedGamesList: RecyclerView? = null
+    var savedGamesArray: ArrayList<Game> = ArrayList()
     var pb: ProgressBar? = null
+    var dbHelper = DatabaseHelper(this)
     var searchField: SearchView? = null
     var adapter: GamesAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,23 +70,47 @@ class GamesActivity : AppCompatActivity() {
         userData = JSONObject(util.readUserFile(File(filesDir, util.userFileName)))
 
         gamesList = findViewById(R.id.games_list)
+        savedGamesList = findViewById(R.id.saved_games_list)
         val gamesArray: ArrayList<Game> = ArrayList()
 
         pb = findViewById(R.id.pb)
 
-        getGamesInBackground(gamesArray)
-        adapter = GamesAdapter(gamesArray, userData!!, this)
-        gamesList?.adapter = adapter
+        savedGamesList?.layoutManager = LinearLayoutManager(this)
+        savedGamesList?.adapter = SavedGamesAdapter(savedGamesArray, this)
+
         gamesList?.layoutManager = LinearLayoutManager(this)
+        adapter = GamesAdapter(gamesArray, this)
+        gamesList?.adapter = adapter
+
+        getCacheInBackground()
+
+        getGamesInBackground(gamesArray)
+    }
+
+    private fun getCacheInBackground() {
+        val gamesArr = dbHelper.getGames()
+        gamesArr.reverse()
+        for(i in 0 until gamesArr.size) {
+            val item = gamesArr[i]
+            savedGamesArray.add(
+                Game(
+                    item.title,
+                    item.previewUrl,
+                    item.downloadUrl,
+                    item.id,
+                    item.description,
+                    item.version
+                )
+            )
+        }
+
+        savedGamesList?.adapter?.notifyDataSetChanged()
+        pb?.visibility = View.GONE
     }
     private fun getGamesInBackground(games: ArrayList<Game>) {
         Thread {
             try {
                 getGames(games)
-                runOnUiThread {
-                    gamesList?.adapter?.notifyDataSetChanged()
-                    pb?.visibility = View.GONE
-                }
             } catch(e: InterruptedException) {
                 Log.e("TAG", "все плохо")
             }
@@ -110,6 +138,9 @@ class GamesActivity : AppCompatActivity() {
         runOnUiThread {
             gamesList?.adapter?.notifyDataSetChanged()
             adapter?.filter("")
+            savedGamesList?.visibility = View.GONE
+            gamesList?.visibility = View.VISIBLE
+            searchField?.visibility = View.VISIBLE
         }
     }
 }

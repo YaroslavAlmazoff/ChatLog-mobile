@@ -21,6 +21,17 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:padding="15dp">
+                <ProgressBar
+                    android:id="@+id/banner_pb"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginRight="10dp"
+                    android:max="100" />
                 <ImageView
                     android:id="@+id/notification_icon"
                     android:visibility="gone"
@@ -51,8 +62,19 @@
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:src="@drawable/nav_profile"
+                            android:scaleType="centerCrop"
                             android:background="@drawable/rounded"/>
                     </androidx.cardview.widget.CardView>
+                    <ProgressBar
+                        android:id="@+id/avatar_pb"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toTopOf="@+id/user_avatar_wrapper"
+                        app:layout_constraintStart_toStartOf="@+id/user_avatar_wrapper"
+                        app:layout_constraintEnd_toEndOf="@+id/user_avatar_wrapper"
+                        app:layout_constraintBottom_toBottomOf="@+id/user_avatar_wrapper"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:max="100" />
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -68,7 +90,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             android:fontFamily="sans-serif-thin"
                             android:background="@drawable/rounded"
-                            android:textSize="12pt"
+                            android:textSize="8pt"
                             android:padding="3dp"
                             android:layout_margin="2dp"
                             android:textFontWeight="200"
@@ -83,7 +105,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             android:fontFamily="sans-serif-thin"
                             android:background="@drawable/rounded"
-                            android:textSize="12pt"
+                            android:textSize="10pt"
                             android:padding="3dp"
                             android:layout_margin="2dp"
                             android:textFontWeight="200"
@@ -275,7 +297,7 @@
                 android:layout_marginRight="10dp"
                 android:max="100" />
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/user_posts"
+                android:id="@+id/saved_posts"
                 android:layout_width="match_parent"
                 android:layout_height="750dp"
                 android:orientation="vertical"
@@ -283,9 +305,18 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:background="@color/transparent_dark"
-                android:layout_marginTop="80dp">
-
-            </androidx.recyclerview.widget.RecyclerView>
+                android:layout_marginTop="80dp" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/user_posts"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="750dp"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/saved_posts"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:background="@color/transparent_dark"
+                android:layout_marginTop="80dp"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 

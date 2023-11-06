@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -56,6 +57,9 @@ class LoginActivity : AppCompatActivity() {
     private fun sendInBackground() {
         Thread {
             try {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(passwordField?.windowToken, 0)
+                imm.hideSoftInputFromWindow(emailField?.windowToken, 0)
                 sendData()
             } catch (e: InterruptedException) {
                 Log.e("TAG", "AAA")
@@ -74,10 +78,10 @@ class LoginActivity : AppCompatActivity() {
         }
         Utils().saveUserData(result, filesDir)
         Utils.init(this, JSONObject(result).getString("userId"))
-        runHomeActivity()
+        runLoadingActivity()
     }
-    private fun runHomeActivity() {
-        val intent = Intent(this, HomeActivity::class.java)
+    private fun runLoadingActivity() {
+        val intent = Intent(this, LoadingActivity::class.java)
         startActivity(intent)
     }
 }

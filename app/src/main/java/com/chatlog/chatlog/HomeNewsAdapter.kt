@@ -13,11 +13,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
+import java.lang.RuntimeException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 
-class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject, private var isOwner: Boolean = false) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
+class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userData: JSONObject, private var isOwner: Boolean = false, private val context: Context) : RecyclerView.Adapter<HomeNewsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.news_item, parent, false)
@@ -32,11 +33,22 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         holder.likes?.text = item.likes.toString()
         holder.comments?.text = item.comments.toString()
         if(holder.image != null && item.image != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/articles/${item.image}").into(holder.image)
+            if(isOwner) {
+                holder.image?.setImageBitmap(Utils.getBitmapFromFile(context, item.image))
+            } else {
+                Picasso.get().load(Constants().SITE_NAME_FILES + "/articles/${item.image}").into(holder.image)
+            }
         }
         holder.likeImage?.setImageResource(R.drawable.blue_like)
         Log.e("TAG", item.liked.toString())
         Log.e("TAG", item.comments.toString())
+        holder.viewAllImagesButton?.visibility = View.GONE
+        holder.bottomSide?.visibility = View.GONE
+        holder.viewAllImagesButton?.visibility = View.VISIBLE
+        holder.bottomSide?.visibility = View.VISIBLE
+        if(isOwner) {
+            holder.delete?.visibility = View.VISIBLE
+        }
         if(item.liked) {
             holder.likes?.text = item.likes.toString()
             holder.likeImage?.setImageResource(R.drawable.red_like)
@@ -48,7 +60,12 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         }
 
         if(isOwner) {
-            holder.delete?.visibility = View.VISIBLE
+            try {
+                Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.userAvatar}").into(holder.userAvatar)
+            } catch(e: RuntimeException) {
+                holder.userAvatar?.setImageDrawable(context.resources.getDrawable(R.drawable.gradient3))
+            }
+            holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
             holder.delete?.setOnClickListener {
                 Thread {
                     try {
@@ -66,7 +83,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         if(item.image == "") {
             holder.image?.visibility = View.GONE
         }
-        if(holder.userAvatar != null) {
+        if(holder.userAvatar != null && !isOwner) {
             Log.e("TAG", item.userAvatar)
             Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.userAvatar}").into(holder.userAvatar)
             holder.userAvatar?.scaleType = ImageView.ScaleType.CENTER_CROP
@@ -135,6 +152,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
         var commentImage: ImageView? = null
         var viewAllImagesButton: Button? = null
         var delete: TextView? = null
+        var bottomSide: View? = null
 
         init {
             title = itemView.findViewById(R.id.news_title)
@@ -151,6 +169,7 @@ class HomeNewsAdapter(private val items: ArrayList<NewsItem>, private var userDa
             commentImage = itemView.findViewById(R.id.comment_image)
             viewAllImagesButton = itemView.findViewById(R.id.view_all_images)
             delete = itemView.findViewById(R.id.news_delete)
+            bottomSide = itemView.findViewById(R.id.bottom_side)
         }
     }
 

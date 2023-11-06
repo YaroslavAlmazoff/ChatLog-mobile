@@ -192,7 +192,7 @@ class UpdatePublicActivity : AppCompatActivity() {
 
     private fun sendData() {
         val token = Utils.updateToken(this)
-        updateProfile(token!!)
+        updateProfile(token)
     }
     private fun updateProfile(token: String) {
         val interceptor = HttpLoggingInterceptor()

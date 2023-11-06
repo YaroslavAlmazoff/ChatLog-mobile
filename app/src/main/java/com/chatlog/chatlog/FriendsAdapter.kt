@@ -1,5 +1,6 @@
 package com.chatlog.chatlog
 
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,7 +12,7 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class FriendsAdapter(private val items: ArrayList<Friend>) : RecyclerView.Adapter<FriendsAdapter.ViewHolder>() {
+class FriendsAdapter(private val items: ArrayList<Friend>, private val context: Context, var loaded: Boolean) : RecyclerView.Adapter<FriendsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.friend_item, parent, false)
@@ -27,16 +28,17 @@ class FriendsAdapter(private val items: ArrayList<Friend>) : RecyclerView.Adapte
         }
         holder.name?.text = Utils.shortName(item.name, 9)
         val color = Utils().generateRandomNeonColor()
-        Log.e("TAG", color.toString())
         holder.name?.setTextColor(color)
-        if(holder.avatar != null && item.avatarUrl != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/useravatars/${item.avatarUrl}").into(holder.avatar)
+        if(holder.avatar != null && item.avatarUrl != "" && item.avatarUrl != "user.png") {
+            holder.avatar?.setImageBitmap(Utils.getBitmapFromFile(context, item.avatarUrl))
             holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
         }
-        holder.avatarWrapper?.setOnClickListener {
-            val intent = Intent(it.context, UserActivity::class.java)
-            intent.putExtra("id", item.id)
-            it.context.startActivity(intent)
+        if(loaded) {
+            holder.avatarWrapper?.setOnClickListener {
+                val intent = Intent(it.context, UserActivity::class.java)
+                intent.putExtra("id", item.id)
+                it.context.startActivity(intent)
+            }
         }
     }
 

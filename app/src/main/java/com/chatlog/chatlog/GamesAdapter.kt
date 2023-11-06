@@ -13,10 +13,11 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
+import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class GamesAdapter(private val games: ArrayList<Game>, private val userData: JSONObject, private val activity: Activity) : RecyclerView.Adapter<GamesAdapter.ViewHolder>(), IFilter {
+class GamesAdapter(private val games: ArrayList<Game>, private var context: Context) : RecyclerView.Adapter<GamesAdapter.ViewHolder>(), IFilter {
     private var filteredList = ArrayList<Game>(games)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -28,7 +29,11 @@ class GamesAdapter(private val games: ArrayList<Game>, private val userData: JSO
         val game = filteredList[position]
         holder.title?.text = Utils.shortName(game.title, 18)
         if(holder.avatar != null && game.previewUrl != "") {
-            Picasso.get().load(Constants().SITE_NAME_FILES + "/gamepreviews/${game.previewUrl}").into(holder.avatar)
+            if(File(context.filesDir.path + "/${game.previewUrl}").exists()) {
+                holder.avatar?.setImageBitmap(Utils.getBitmapFromFile(context, game.previewUrl))
+            } else {
+                Picasso.get().load(Constants().SITE_NAME_FILES + "/gamepreviews/${game.previewUrl}").into(holder.avatar)
+            }
             holder.avatar?.scaleType = ImageView.ScaleType.CENTER_CROP
         }
         holder.itemView?.setOnClickListener {

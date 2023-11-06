@@ -23,7 +23,17 @@ interface ChatLogApi {
         @Part file: MultipartBody.Part?,
         @Part file2: MultipartBody.Part?,
         @Header("Authorization") token: String,
-    ): Response<String>
+    ): String
+
+    @Multipart
+    @POST("update-images")
+    suspend fun updateImages(
+        @Part("avatarExists") avatarExists: Boolean,
+        @Part("bannerExists") bannerExists: Boolean,
+        @Part avatar: MultipartBody.Part?,
+        @Part banner: MultipartBody.Part?,
+        @Header("Authorization") token: String,
+    ): String
 
     @Multipart
     @POST("public/edit/{id}")
